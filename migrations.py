@@ -54,3 +54,7 @@ class BasePopulateMigration(BaseMigration, ABC):
 @dataclass
 class PopulateMockedMinimalDbMigration(BasePopulateMigration):
     folder: str = 'populate_mocked_minimal_db'
+
+@dataclass
+class PopulateMockedFullDbMigration(BasePopulateMigration):
+    folder: str = 'populate_mocked_full_db'

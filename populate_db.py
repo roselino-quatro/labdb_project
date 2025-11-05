@@ -1,12 +1,12 @@
 from dbsession import DBSession
-from migrations import PopulateMockedMinimalDbMigration
+from migrations import PopulateMockedFullDbMigration
 
 def populate_db():
     # Criando a sessão do banco
     dbsession = DBSession()
     
     # Criando a instância da migração
-    migration = PopulateMockedMinimalDbMigration(dbsession=dbsession)
+    migration = PopulateMockedFullDbMigration(dbsession=dbsession)
     
     # Executando a migração de populações
     print("Iniciando a migração de populações do banco...")

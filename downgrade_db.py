@@ -1,16 +1,16 @@
 from dbsession import DBSession
-from migrations import PopulateMockedMinimalDbMigration
+from migrations import PopulateMockedFullDbMigration
 
 def downgrade_db():
     # Criando a sessão do banco
     dbsession = DBSession()  
     
     # Criando a instância da migração
-    migration = PopulateMockedMinimalDbMigration(dbsession=dbsession)
+    migration = PopulateMockedFullDbMigration(dbsession=dbsession)
     
     # Executando a migração de downgrade
     print("Iniciando o downgrade do banco...")
-    migration.downgrade_populated_db()  # Chama o método que faz o downgrade
+    migration.downgrade_populated_db()
     print("Downgrade concluído com sucesso!")
 
 if __name__ == "__main__":

@@ -10,12 +10,11 @@ Este documento descreve a função de cada script Python, sua ordem de execuçã
 ```bash
 python gerar_dados.py
     - Roda todos os códigos python para gerar os arquivos
+    - Preenche a pasta sql/populate_mocked_full_db com os arquivos sql para inserção de dados na base
     
     (opcional)
 python	apagar_csvs_sqls.py
-    - Apaga todos os arquivos csv e sql que estão dentro dessa pasta
-
-- Mover manualmente todos os scripts upgrade.sql para a pasta sql/populate_mocked_minimal_db
+    - Apaga todos os arquivos csv e sql que estão dentro da pasta dados_ficticios
 ```
 	
 

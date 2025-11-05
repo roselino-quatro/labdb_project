@@ -46,3 +46,43 @@ pip install -r requirements.txt
 ```
 pytest -s
 ```
+
+### 6. Popular o banco de dados com dados fictícios (carga completa)
+
+1. **Gerar os arquivos SQL de carga**  
+   Acesse a pasta `dados_ficticios` e execute o script responsável por gerar os arquivos `.sql`:
+
+   ```bash
+   cd dados_ficticios
+   python gerar_dados.py
+   ```
+
+   Esse script executa todos os geradores e move automaticamente os arquivos SQL criados para a pasta:
+
+   ```
+   sql/populate_mocked_full_db/
+   ```
+
+---
+
+2. **Popular o banco de dados**  
+   Retorne à pasta principal do projeto e execute:
+
+   ```bash
+   python populate_db.py
+   ```
+
+   Esse comando aplicará as migrações de *schema* e preencherá todas as tabelas do banco com os dados fictícios gerados.
+
+---
+
+3. **(Opcional) Reverter ou limpar o banco de dados**  
+   Caso queira desfazer a carga e remover os dados populados:
+
+   ```bash
+   python downgrade_db.py
+   ```
+
+   Isso executará os scripts de *downgrade* na ordem inversa, limpando todas as tabelas e o schema.
+
+---
