@@ -1,4 +1,5 @@
 import psycopg2
+import logging
 from tabulate import tabulate
 
 # Configurações da conexão ao banco de dados
@@ -9,6 +10,14 @@ DB_CONFIG = {
     "host": "localhost",
     "port": 5432
 }
+
+# Configuração do log para capturar os notices
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger(__name__)
+
+# Função para capturar e exibir os notices
+def notice_callback(notice):
+    logger.info("NOTICE: %s", notice)
 
 # Dicionário com os relatórios SQL
 RELATORIOS = {
@@ -63,6 +72,23 @@ RELATORIOS = {
             JOIN instalacao i ON i.id_instalacao = r.id_instalacao
             GROUP BY i.nome;
         """
+    },
+    5: {
+        "descricao": "Total de reservas e duração total por instalação",
+        "sql": """
+            SELECT 
+                i.NOME AS NOME_INSTALACAO,
+                COUNT(r.ID_RESERVA) AS NUM_RESERVAS,
+                SUM(EXTRACT(EPOCH FROM (r.HORARIO_FIM - r.HORARIO_INICIO)) / 3600) AS DURACAO_TOTAL_HORAS
+            FROM 
+                RESERVA r
+            JOIN 
+                INSTALACAO i ON r.ID_INSTALACAO = i.ID_INSTALACAO
+            GROUP BY 
+                i.NOME
+            ORDER BY 
+                NUM_RESERVAS DESC, DURACAO_TOTAL_HORAS DESC;
+        """
     }
 }
 
@@ -77,12 +103,19 @@ def executar_relatorio(opcao):
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
+
+        # Executar a consulta SQL
         cur.execute(relatorio["sql"])
-        resultados = cur.fetchall()
-        colunas = [desc[0] for desc in cur.description]
-        print(tabulate(resultados, headers=colunas, tablefmt="psql"))
+        
+        # Obter os resultados da consulta
+        if cur.description:
+            resultados = cur.fetchall()
+            colunas = [desc[0] for desc in cur.description]
+            print(tabulate(resultados, headers=colunas, tablefmt="psql"))
+        
         cur.close()
         conn.close()
+
     except Exception as e:
         print("Erro ao executar consulta:", e)
 

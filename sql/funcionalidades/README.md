@@ -25,20 +25,19 @@ pip install psycopg2 tabulate
 ```
 
 ## 1 - Verificar capacidade de instalação
-- ID da instalação: 5 → resposta: TRUE  
-- ID da instalação: 1 → resposta: FALSE  
+- ID da instalação: 
 
 ---
 
 ## 2 - Cadastrar evento
-- Nome do evento: DANÇA TESTE 123  
-- Descrição: testando  
-- ID da reserva: 2755  
+- Nome do evento: 
+- Descrição: 
+- ID da reserva:
 
 ---
 
 ## 3 - Ver reservas de um interno USP
-- CPF do interno: 69355642988  
+- CPF do interno: 
 
 ---
 
@@ -50,6 +49,6 @@ pip install psycopg2 tabulate
 ---
 
 ## 5 - Listar atividades de um educador físico
-- CPF do educador físico: 40505965399  
+- CPF do educador físico: 
 
 
