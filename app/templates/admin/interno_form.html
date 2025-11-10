@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar interno' if interno else 'Novo interno' }} | Administração{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'Editar interno' if interno else 'Cadastrar interno' }}</h1>
+        <p class="mt-1 text-sm text-gray-500">Defina informações pessoais, categoria USP e dados de contato.</p>
+    </div>
+
+    <form method="post" action="" class="space-y-5 rounded-lg bg-white p-6 shadow">
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">NUSP
+                <input type="text" name="nusp" value="{{ form.nusp.data if form else interno.nusp }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Nome completo
+                <input type="text" name="nome" value="{{ form.nome.data if form else interno.nome }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Categoria USP
+                <select name="categoria" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required>
+                    {% for option in categoria_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="text-sm font-medium text-gray-700">Telefone (WhatsApp)
+                <input type="tel" name="telefone" value="{{ form.telefone.data if form else interno.telefone }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">E-mail institucional
+                <input type="email" name="email" value="{{ form.email.data if form else interno.email }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Vínculo com atividade
+                <input type="text" name="vinculo" value="{{ form.vinculo.data if form else interno.vinculo }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" placeholder="Ex.: Atleta natação" />
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Observações
+                <textarea name="observacoes" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">{{ form.observacoes.data if form else interno.observacoes }}</textarea>
+            </label>
+        </div>
+        <div class="flex items-center justify-end space-x-3">
+            <a href="{{ build_url('admin.interno_index') or '#' }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">Cancelar</a>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Salvar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

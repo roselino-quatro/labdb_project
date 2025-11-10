@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% import 'components/macros.html' as ui %}
+{% block title %}Funcionários | Administração{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Funcionários CEFER</h1>
+            <p class="mt-1 text-sm text-gray-500">Gerencie dados funcionais, atribuições e restrições de colaboradores.</p>
+        </div>
+        <a href="{{ build_url('admin.funcionario_create') or '#' }}" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Novo funcionário</a>
+    </header>
+
+    {{ ui.filter_bar([
+        {'label': 'Busca por nome ou registro', 'name': 'q', 'type': 'text', 'placeholder': 'Nome ou registro funcional', 'value': request.args.q if request and request.args else ''},
+        {'label': 'Área de atuação', 'name': 'area', 'type': 'select', 'options': area_options}
+    ]) }}
+
+    {{ ui.table([
+        'Registro', 'Nome', 'Área de atuação', 'Atribuições', 'Restrições'
+    ], funcionarios, 'Nenhum funcionário cadastrado.') }}
+</section>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Reservas por Instalação | Relatórios{% endblock %}
+
+{% block content %}
+<section class="space-y-8">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Reservas por Instalação</h1>
+            <p class="mt-1 text-sm text-gray-500">Compare volumes mensais, totais gerais e detalhes por espaço.</p>
+        </div>
+        <form class="flex flex-wrap gap-3 text-sm">
+            <label class="text-gray-600">
+                Instalação
+                <select name="instalacao" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    <option value="">Todas</option>
+                    {% for option in instalacao_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="text-gray-600">
+                Ano
+                <select name="ano" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    {% for option in ano_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Filtrar</button>
+        </form>
+    </header>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Totais por mês</h2>
+        <p class="mt-1 text-sm text-gray-500">Volume agregado de reservas por instalação e mês.</p>
+        <div class="mt-6 overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Instalação</th>
+                        {% for mes in meses %}
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">{{ mes }}</th>
+                        {% endfor %}
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">Total anual</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for linha in reservas_por_mes %}
+                    <tr>
+                        <td class="px-4 py-3 text-gray-800">{{ linha.instalacao }}</td>
+                        {% for valor in linha.mensal %}
+                        <td class="px-4 py-3 text-right text-gray-700">{{ valor }}</td>
+                        {% endfor %}
+                        <td class="px-4 py-3 text-right font-semibold text-gray-900">{{ linha.total }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{{ meses|length + 2 }}" class="px-4 py-6 text-center text-gray-500">Nenhum dado disponível para o período selecionado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4 flex justify-end text-sm text-gray-600">
+            <span>Total geral de reservas: <strong class="text-gray-900">{{ total_reservas }}</strong></span>
+        </div>
+    </section>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Distribuição por instalação</h2>
+        <p class="mt-1 text-sm text-gray-500">Lista de instalações com totais acumulados.</p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {% for instalacao in totais_por_instalacao %}
+            <article class="rounded border border-gray-200 p-4">
+                <h3 class="text-sm font-semibold text-gray-700">{{ instalacao.nome }}</h3>
+                <p class="mt-2 text-3xl font-bold text-uspprimary">{{ instalacao.total }}</p>
+                <p class="mt-1 text-xs text-gray-400">Última reserva em {{ instalacao.ultima_reserva }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Percorra todas as instalações</h2>
+        <p class="mt-1 text-sm text-gray-500">Loop para listar instalações e seus totais de reservas.</p>
+        <div class="mt-4 space-y-3">
+            {% for instalacao in instalacoes_loop %}
+            <div class="flex items-center justify-between rounded border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                <span>{{ instalacao.nome }}</span>
+                <span>Total de reservas: <strong class="text-gray-900">{{ instalacao.total }}</strong></span>
+            </div>
+            {% else %}
+            <p class="text-center text-gray-500">Nenhuma instalação encontrada.</p>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+{% endblock %}

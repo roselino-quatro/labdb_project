@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar educador' if educador else 'Novo educador' }} | Administração{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'Editar educador' if educador else 'Cadastrar educador' }}</h1>
+        <p class="mt-1 text-sm text-gray-500">Informe dados profissionais, modalidades e disponibilidade para condução de atividades.</p>
+    </div>
+
+    <form method="post" action="" class="space-y-5 rounded-lg bg-white p-6 shadow">
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Nome completo
+                <input type="text" name="nome" value="{{ form.nome.data if form else educador.nome }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Registro profissional (CREF)
+                <input type="text" name="registro_profissional" value="{{ form.registro_profissional.data if form else educador.registro_profissional }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Modalidades habilitadas
+                <select name="modalidades" multiple class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    {% for option in modalidade_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+                <span class="mt-1 block text-xs text-gray-400">Segure Ctrl (Cmd no Mac) para selecionar várias modalidades.</span>
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">E-mail institucional
+                <input type="email" name="email" value="{{ form.email.data if form else educador.email }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Telefone
+                <input type="tel" name="telefone" value="{{ form.telefone.data if form else educador.telefone }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Disponibilidade semanal
+                <textarea name="disponibilidade" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">{{ form.disponibilidade.data if form else educador.disponibilidade }}</textarea>
+            </label>
+        </div>
+        <div class="flex items-center justify-end space-x-3">
+            <a href="{{ build_url('admin.educador_index') or '#' }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">Cancelar</a>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Salvar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

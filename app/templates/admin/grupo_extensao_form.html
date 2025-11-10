@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar grupo' if grupo else 'Novo grupo de extensão' }} | Administração{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'Editar grupo de extensão' if grupo else 'Cadastrar grupo de extensão' }}</h1>
+        <p class="mt-1 text-sm text-gray-500">Cadastre grupos parceiros, responsáveis e atividades ofertadas.</p>
+    </div>
+
+    <form method="post" action="" class="space-y-5 rounded-lg bg-white p-6 shadow">
+        <div>
+            <label class="text-sm font-medium text-gray-700">Nome do grupo
+                <input type="text" name="nome" value="{{ form.nome.data if form else grupo.nome }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Modalidade principal
+                <select name="modalidade" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required>
+                    {% for option in modalidade_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="text-sm font-medium text-gray-700">Status
+                <select name="status" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    {% for option in status_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Responsável interno
+                <input type="text" name="responsavel_interno" value="{{ form.responsavel_interno.data if form else grupo.responsavel_interno }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Contato
+                <input type="text" name="contato" value="{{ form.contato.data if form else grupo.contato }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Descrição e atividades
+                <textarea name="descricao" rows="4" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">{{ form.descricao.data if form else grupo.descricao }}</textarea>
+            </label>
+        </div>
+        <div class="flex items-center justify-end space-x-3">
+            <a href="{{ build_url('admin.grupo_extensao_index') or '#' }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">Cancelar</a>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Salvar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

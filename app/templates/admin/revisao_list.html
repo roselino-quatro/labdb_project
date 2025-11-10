@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Pendências | Administração{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Pendências e Revisões</h1>
+            <p class="mt-1 text-sm text-gray-500">Acompanhe solicitações que precisam de aprovação da equipe administrativa.</p>
+        </div>
+    </header>
+
+    <div class="rounded-lg bg-white p-4 shadow">
+        <ul class="space-y-3">
+            {% if revisoes %}
+                {% for revisao in revisoes %}
+                <li class="flex flex-col gap-2 rounded border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-800">{{ revisao.titulo }}</p>
+                        <p class="text-xs text-gray-500">{{ revisao.descricao }}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <form method="post" action="{{ build_url('admin.revisao_aprovar', review_id=revisao.id) or '#' }}">
+                            <button type="submit" class="rounded bg-uspprimary px-3 py-1 text-xs font-semibold text-white hover:bg-uspsecondary">Aprovar</button>
+                        </form>
+                        <form method="post" action="{{ build_url('admin.revisao_rejeitar', review_id=revisao.id) or '#' }}">
+                            <button type="submit" class="rounded bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-300">Rejeitar</button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            {% else %}
+            <li class="text-center text-sm text-gray-500">Nenhuma pendência registrada.</li>
+            {% endif %}
+        </ul>
+    </div>
+</section>
+{% endblock %}

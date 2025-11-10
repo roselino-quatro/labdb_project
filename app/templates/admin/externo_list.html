@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% import 'components/macros.html' as ui %}
+{% block title %}Externos USP | Administração{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Usuários Externos</h1>
+            <p class="mt-1 text-sm text-gray-500">Controle convites, autorizações e participações dos convidados externos.</p>
+        </div>
+        <a href="{{ build_url('admin.externo_create') or '#' }}" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Novo convite externo</a>
+    </header>
+
+    {{ ui.filter_bar([
+        {'label': 'Busca por nome ou documento', 'name': 'q', 'type': 'text', 'placeholder': 'Digite nome ou documento', 'value': request.args.q if request and request.args else ''},
+        {'label': 'Status do convite', 'name': 'status', 'type': 'select', 'options': status_options}
+    ]) }}
+
+    {{ ui.table([
+        'Documento', 'Nome', 'E-mail', 'Convidado por', 'Status'
+    ], externos, 'Nenhum externo cadastrado.') }}
+
+    <div class="flex items-center justify-between text-sm text-gray-500">
+        <div>Mostrando {{ pagination.start }}-{{ pagination.end }} de {{ pagination.total }} externos</div>
+        <div class="space-x-2">
+            {% if pagination.prev_url %}
+            <a href="{{ pagination.prev_url }}" class="rounded border border-gray-300 px-3 py-1 hover:bg-gray-100">Anterior</a>
+            {% endif %}
+            {% if pagination.next_url %}
+            <a href="{{ pagination.next_url }}" class="rounded border border-gray-300 px-3 py-1 hover:bg-gray-100">Próxima</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

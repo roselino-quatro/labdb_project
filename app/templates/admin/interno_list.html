@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% import 'components/macros.html' as ui %}
+{% block title %}Internos USP | Administração{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Usuários Internos USP</h1>
+            <p class="mt-1 text-sm text-gray-500">Gerencie docentes, discentes e colaboradores da USP autorizados a reservar instalações.</p>
+        </div>
+        <a href="{{ build_url('admin.interno_create') or '#' }}" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Novo interno</a>
+    </header>
+
+    {{ ui.filter_bar([
+        {'label': 'Busca por nome ou NUSP', 'name': 'q', 'type': 'text', 'placeholder': 'Digite nome ou NUSP', 'value': request.args.q if request and request.args else ''},
+        {'label': 'Categoria', 'name': 'categoria', 'type': 'select', 'options': categoria_options}
+    ]) }}
+
+    {{ ui.table([
+        'NUSP', 'Nome completo', 'Categoria', 'E-mail', 'Telefone'
+    ], internos, 'Nenhum interno encontrado.') }}
+
+    <div class="flex items-center justify-between text-sm text-gray-500">
+        <div>Mostrando {{ pagination.start }}-{{ pagination.end }} de {{ pagination.total }} internos</div>
+        <div class="space-x-2">
+            {% if pagination.prev_url %}
+            <a href="{{ pagination.prev_url }}" class="rounded border border-gray-300 px-3 py-1 hover:bg-gray-100">Anterior</a>
+            {% endif %}
+            {% if pagination.next_url %}
+            <a href="{{ pagination.next_url }}" class="rounded border border-gray-300 px-3 py-1 hover:bg-gray-100">Próxima</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

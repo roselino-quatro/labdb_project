@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar funcionário' if funcionario else 'Novo funcionário' }} | Administração{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'Editar funcionário' if funcionario else 'Cadastrar funcionário' }}</h1>
+        <p class="mt-1 text-sm text-gray-500">Registre informações pessoais, formação e vínculos com atividades.</p>
+    </div>
+
+    <form method="post" action="" class="space-y-5 rounded-lg bg-white p-6 shadow">
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Nome completo
+                <input type="text" name="nome" value="{{ form.nome.data if form else funcionario.nome }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Data de nascimento
+                <input type="date" name="data_nascimento" value="{{ form.data_nascimento.data if form else funcionario.data_nascimento }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Formação
+                <input type="text" name="formacao" value="{{ form.formacao.data if form else funcionario.formacao }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Registro funcional
+                <input type="text" name="registro" value="{{ form.registro.data if form else funcionario.registro }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Atribuições no CEFER
+                <textarea name="atribuicoes" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">{{ form.atribuicoes.data if form else funcionario.atribuicoes }}</textarea>
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Atividades ministradas
+                <textarea name="atividades" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" placeholder="Liste atividades ou vincule educadores.">{{ form.atividades.data if form else funcionario.atividades }}</textarea>
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Restrições físicas
+                <textarea name="restricoes" rows="2" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">{{ form.restricoes.data if form else funcionario.restricoes }}</textarea>
+            </label>
+        </div>
+        <div class="flex items-center justify-end space-x-3">
+            <a href="{{ build_url('admin.funcionario_index') or '#' }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">Cancelar</a>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Salvar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

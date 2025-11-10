@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% import 'components/macros.html' as ui %}
+{% block title %}Administração | CEFER{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-3xl font-semibold text-gray-900">Painel Administrativo</h1>
+            <p class="mt-2 text-sm text-gray-500">Gerencie cadastros, infraestrutura e indicadores do CEFER.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ build_url('admin.reserva_create') or '#' }}" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Nova reserva</a>
+            <a href="{{ build_url('admin.atividade_create') or '#' }}" class="rounded border border-uspprimary px-4 py-2 text-sm font-semibold text-uspprimary hover:bg-uspprimary hover:text-white">Nova atividade</a>
+        </div>
+    </header>
+
+    {{ ui.stat_cards([
+        {'label': 'Usuários internos ativos', 'value': internal_count, 'description': 'Total com acesso às reservas'},
+        {'label': 'Usuários externos convidados', 'value': external_count, 'description': 'Convites ativos e pendentes'},
+        {'label': 'Instalações reserváveis', 'value': install_count, 'description': 'Espaços disponíveis para agenda'},
+        {'label': 'Equipamentos cadastrados', 'value': equipment_count, 'description': 'Itens com controle de patrimônio'}
+    ]) }}
+
+    <section class="grid gap-6 lg:grid-cols-2">
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Pendências recentes</h2>
+                <a href="{{ build_url('admin.revisao_index') or '#' }}" class="text-sm font-medium text-uspprimary hover:text-uspyellow">Ver tudo</a>
+            </div>
+            <div class="rounded-lg bg-white p-4 shadow">
+                <ul class="space-y-3 text-sm text-gray-600">
+                    {% for item in pending_items %}
+                    <li class="flex items-start justify-between">
+                        <div>
+                            <p class="font-medium text-gray-800">{{ item.title }}</p>
+                            <p class="text-xs text-gray-400">{{ item.description }}</p>
+                        </div>
+                        <a href="{{ item.action_url }}" class="text-uspprimary hover:text-uspyellow">Gerenciar</a>
+                    </li>
+                    {% else %}
+                    <li class="text-center text-gray-400">Nenhuma pendência para hoje.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Próximas reservas</h2>
+                <a href="{{ build_url('admin.reserva_index') or '#' }}" class="text-sm font-medium text-uspprimary hover:text-uspyellow">Ver agenda</a>
+            </div>
+            <div class="rounded-lg bg-white p-4 shadow">
+                <ul class="space-y-3 text-sm text-gray-600">
+                    {% for reserva in upcoming_reservas %}
+                    <li class="flex items-start justify-between">
+                        <div>
+                            <p class="font-medium text-gray-800">{{ reserva.instalacao }}</p>
+                            <p class="text-xs text-gray-400">{{ reserva.periodo }} · Responsável {{ reserva.responsavel }}</p>
+                        </div>
+                        <span class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">{{ reserva.status }}</span>
+                    </li>
+                    {% else %}
+                    <li class="text-center text-gray-400">Sem reservas agendadas.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900">Atividades em andamento</h2>
+            <a href="{{ build_url('admin.atividade_index') or '#' }}" class="text-sm font-medium text-uspprimary hover:text-uspyellow">Ver todas</a>
+        </div>
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Atividade</th>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Educador</th>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Período</th>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Vagas</th>
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for atividade in active_atividades %}
+                    <tr>
+                        <td class="px-4 py-3 text-gray-700">{{ atividade.nome }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ atividade.educador }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ atividade.periodo }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ atividade.vagas_ocupadas }}/{{ atividade.vagas_totais }}</td>
+                        <td class="px-4 py-3 text-right">
+                            <a href="{{ atividade.detail_url }}" class="rounded bg-uspsecondary px-3 py-1 text-xs font-semibold text-white hover:bg-uspprimary">Detalhes</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-6 text-center text-gray-500">Nenhuma atividade em execução.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

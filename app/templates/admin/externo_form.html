@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar externo' if externo else 'Novo externo' }} | Administração{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'Editar externo' if externo else 'Cadastrar externo' }}</h1>
+        <p class="mt-1 text-sm text-gray-500">Cadastre convidados autorizados e vincule-os aos internos responsáveis.</p>
+    </div>
+
+    <form method="post" action="" class="space-y-5 rounded-lg bg-white p-6 shadow">
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Nome completo
+                <input type="text" name="nome" value="{{ form.nome.data if form else externo.nome }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Documento de identificação
+                <input type="text" name="documento" value="{{ form.documento.data if form else externo.documento }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">E-mail
+                <input type="email" name="email" value="{{ form.email.data if form else externo.email }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Telefone
+                <input type="tel" name="telefone" value="{{ form.telefone.data if form else externo.telefone }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Convidado por (NUSP)
+                <input type="text" name="convidado_por" value="{{ form.convidado_por.data if form else externo.convidado_por }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Status do convite
+                <select name="status" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    {% for option in status_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Autorização da secretaria
+                <textarea name="autorizacao" rows="4" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">{{ form.autorizacao.data if form else externo.autorizacao }}</textarea>
+            </label>
+        </div>
+        <div class="flex items-center justify-end space-x-3">
+            <a href="{{ build_url('admin.externo_index') or '#' }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">Cancelar</a>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Salvar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

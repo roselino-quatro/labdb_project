@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% set hide_sidebar = True %}
+{% block title %}Confirmar Convite | CEFER{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-2xl space-y-6">
+    <header class="text-center">
+        <h1 class="text-2xl font-semibold text-gray-900">Confirme sua participação</h1>
+        <p class="mt-2 text-sm text-gray-500">Revise os dados do convite e finalize sua inscrição.</p>
+    </header>
+
+    <article class="rounded-lg bg-white p-6 shadow">
+        <dl class="grid gap-4 text-sm text-gray-600">
+            <div class="flex items-start justify-between">
+                <dt class="font-medium text-gray-700">Convidado</dt>
+                <dd class="text-right text-gray-900">{{ convite.nome }}</dd>
+            </div>
+            <div class="flex items-start justify-between">
+                <dt class="font-medium text-gray-700">Convidado por</dt>
+                <dd class="text-right text-gray-900">{{ convite.convidado_por }}</dd>
+            </div>
+            <div class="flex items-start justify-between">
+                <dt class="font-medium text-gray-700">Atividade</dt>
+                <dd class="text-right text-gray-900">{{ convite.atividade }}</dd>
+            </div>
+            <div class="flex items-start justify-between">
+                <dt class="font-medium text-gray-700">Data</dt>
+                <dd class="text-right text-gray-900">{{ convite.data }}</dd>
+            </div>
+            <div class="flex items-start justify-between">
+                <dt class="font-medium text-gray-700">Local</dt>
+                <dd class="text-right text-gray-900">{{ convite.local }}</dd>
+            </div>
+        </dl>
+    </article>
+
+    <form method="post" action="{{ url_for('external.confirmar_convite', token=convite.token) if url_for else '#' }}" class="space-y-4 rounded-lg bg-white p-6 shadow">
+        <p class="text-sm text-gray-600">Confirme seus dados pessoais para emissão da autorização.</p>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Telefone
+                <input type="tel" name="telefone" value="{{ form.telefone.data if form else '' }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Contato de emergência
+                <input type="text" name="contato_emergencia" value="{{ form.contato_emergencia.data if form else '' }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+        </div>
+        <label class="flex items-start space-x-2 text-sm text-gray-600">
+            <input type="checkbox" name="termos" required class="mt-1 h-4 w-4 rounded border-gray-300 text-uspprimary focus:ring-uspprimary" />
+            <span>Declaro estar apto a participar das atividades do CEFER e seguir as orientações dos responsáveis.</span>
+        </label>
+        <div class="flex justify-end gap-2">
+            <a href="{{ url_for('external.dashboard') if url_for else '#' }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">Cancelar</a>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Aceitar convite</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

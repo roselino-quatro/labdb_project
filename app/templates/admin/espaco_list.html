@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% import 'components/macros.html' as ui %}
+{% block title %}Espaços Internos | Administração{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Espaços Internos</h1>
+            <p class="mt-1 text-sm text-gray-500">Gerencie subdivisões e ambientes auxiliares vinculados às instalações.</p>
+        </div>
+        <a href="{{ build_url('admin.espaco_create') or '#' }}" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Novo espaço</a>
+    </header>
+
+    {{ ui.filter_bar([
+        {'label': 'Instalação principal', 'name': 'instalacao', 'type': 'select', 'options': instalacao_options},
+        {'label': 'Disponibilidade', 'name': 'disponibilidade', 'type': 'select', 'options': disponibilidade_options}
+    ]) }}
+
+    {{ ui.table([
+        'Nome', 'Instalação', 'Capacidade', 'Disponibilidade', 'Observações'
+    ], espacos, 'Nenhum espaço cadastrado.') }}
+</section>
+{% endblock %}

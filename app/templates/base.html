@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}CEFER Management{% endblock %}</title>
+    <link rel="icon" href="https://www.usp.br/favicon.ico" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        uspprimary: '#1094ab',
+                        uspsecondary: '#64c4d2',
+                        uspyellow: '#fcb421',
+                        uspgray: '#e5e7eb'
+                    }
+                }
+            }
+        };
+    </script>
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="{{ body_class if body_class else 'min-h-screen bg-gray-100 text-gray-900' }}">
+    <div class="{{ container_class if container_class else 'flex min-h-screen' }}">
+        {% if not hide_sidebar %}
+            {% include 'partials/sidebar.html' %}
+        {% endif %}
+        <div class="{{ content_wrapper_class if content_wrapper_class else 'flex min-h-screen w-full flex-col' }}">
+            {% if not hide_navbar %}
+                {% include 'partials/navbar.html' %}
+            {% endif %}
+            <main class="{{ main_class if main_class else 'flex-1 p-6' }}">
+                {% if not hide_messages %}
+                    {% include 'partials/messages.html' %}
+                {% endif %}
+                {% block content %}{% endblock %}
+            </main>
+            {% if not hide_footer %}
+            <footer class="bg-white py-4 text-sm text-gray-500 shadow-inner">
+                <div class="container mx-auto flex items-center justify-between px-6">
+                    <span>CEFER USP &copy; {{ current_year if current_year else '2025' }}</span>
+                    <span>Sistema de Gestão Integrada</span>
+                </div>
+            </footer>
+            {% endif %}
+        </div>
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

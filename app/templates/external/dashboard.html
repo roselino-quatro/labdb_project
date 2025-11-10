@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Portal Externo | CEFER{% endblock %}
+{% set hide_sidebar = True %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-8">
+    <header class="text-center">
+        <h1 class="text-3xl font-semibold text-gray-900">Bem-vindo ao CEFER</h1>
+        <p class="mt-2 text-sm text-gray-500">Finalize seu cadastro e aceite convites para participar das atividades.</p>
+    </header>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Convite pendente</h2>
+        <p class="mt-1 text-sm text-gray-500">Utilize o código recebido por e-mail ou fornecido pelo membro da USP que o convidou.</p>
+        <form method="post" action="{{ url_for('external.validar_convite') if url_for else '#' }}" class="mt-4 grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Código do convite
+                <input type="text" name="codigo_convite" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Documento
+                <input type="text" name="documento" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="sm:col-span-2 text-sm font-medium text-gray-700">E-mail para contato
+                <input type="email" name="email" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <div class="sm:col-span-2 flex justify-end">
+                <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Validar convite</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Participações</h2>
+        <p class="mt-1 text-sm text-gray-500">Após aceitar um convite, acompanhe aqui suas atividades confirmadas.</p>
+        <ul class="mt-4 space-y-3 text-sm text-gray-600">
+            {% for atividade in atividades_confirmadas %}
+            <li class="rounded border border-gray-200 p-4">
+                <div class="flex items-center justify-between">
+                    <span class="font-semibold text-gray-800">{{ atividade.nome }}</span>
+                    <span class="rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">Confirmado</span>
+                </div>
+                <p class="mt-1 text-xs text-gray-400">{{ atividade.data }} · {{ atividade.horario }} · Local {{ atividade.local }}</p>
+            </li>
+            {% else %}
+            <li class="text-center text-gray-400">Você ainda não confirmou participação.</li>
+            {% endfor %}
+        </ul>
+    </section>
+</section>
+{% endblock %}

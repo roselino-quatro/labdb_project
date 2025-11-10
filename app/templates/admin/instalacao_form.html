@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar instalação' if instalacao else 'Nova instalação' }} | Administração{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'Editar instalação' if instalacao else 'Cadastrar instalação' }}</h1>
+        <p class="mt-1 text-sm text-gray-500">Registre espaços físicos, capacidades e regras de uso.</p>
+    </div>
+
+    <form method="post" action="" class="space-y-5 rounded-lg bg-white p-6 shadow">
+        <div>
+            <label class="text-sm font-medium text-gray-700">Nome da instalação
+                <input type="text" name="nome" value="{{ form.nome.data if form else instalacao.nome }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Tipo de espaço
+                <select name="tipo" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required>
+                    {% for option in tipo_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="text-sm font-medium text-gray-700">Capacidade de pessoas
+                <input type="number" name="capacidade" min="0" value="{{ form.capacidade.data if form else instalacao.capacidade }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Necessita reserva?
+                <select name="exige_reserva" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    <option value="true" {% if exige_reserva %}selected{% endif %}>Sim</option>
+                    <option value="false" {% if exige_reserva is defined and not exige_reserva %}selected{% endif %}>Não</option>
+                </select>
+            </label>
+            <label class="text-sm font-medium text-gray-700">Prioridade USP?
+                <select name="prioridade_usp" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    <option value="true" {% if prioridade_usp %}selected{% endif %}>Sim</option>
+                    <option value="false" {% if prioridade_usp is defined and not prioridade_usp %}selected{% endif %}>Não</option>
+                </select>
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Descrição e regras de uso
+                <textarea name="descricao" rows="4" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">{{ form.descricao.data if form else instalacao.descricao }}</textarea>
+            </label>
+        </div>
+        <div class="flex items-center justify-end space-x-3">
+            <a href="{{ build_url('admin.instalacao_index') or '#' }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">Cancelar</a>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Salvar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Relatórios | CEFER{% endblock %}
+
+{% block content %}
+<section class="space-y-8">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-3xl font-semibold text-gray-900">Relatórios Administrativos</h1>
+            <p class="mt-2 text-sm text-gray-500">Acompanhe métricas estratégicas de reservas, atividades e participação.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ url_for('reports.reservas_instalacoes') if url_for else '#' }}" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Reservas por instalação</a>
+            <a href="{{ url_for('reports.atividades_educador') if url_for else '#' }}" class="rounded border border-uspprimary px-4 py-2 text-sm font-semibold text-uspprimary hover:bg-uspprimary hover:text-white">Atividades por educador</a>
+            <a href="{{ url_for('reports.participantes_atividades') if url_for else '#' }}" class="rounded border border-uspprimary px-4 py-2 text-sm font-semibold text-uspprimary hover:bg-uspprimary hover:text-white">Participação</a>
+            <a href="{{ url_for('reports.espacos_utilizacao') if url_for else '#' }}" class="rounded border border-uspprimary px-4 py-2 text-sm font-semibold text-uspprimary hover:bg-uspprimary hover:text-white">Espaços mais usados</a>
+        </div>
+    </header>
+
+    <section class="grid gap-6 lg:grid-cols-2">
+        {% for card in highlight_cards %}
+        <article class="rounded-lg bg-white p-6 shadow">
+            <h2 class="text-lg font-semibold text-gray-900">{{ card.title }}</h2>
+            <p class="mt-1 text-sm text-gray-500">{{ card.description }}</p>
+            <div class="mt-4 text-4xl font-bold text-uspprimary">{{ card.value }}</div>
+            <ul class="mt-4 space-y-2 text-sm text-gray-600">
+                {% for item in card["items"] %}
+                <li class="flex items-center justify-between">
+                    <span>{{ item.label }}</span>
+                    <span class="font-semibold text-gray-800">{{ item.value }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            <a href="{{ card.link }}" class="mt-4 inline-flex items-center text-sm font-semibold text-uspprimary hover:text-uspyellow">Detalhar relatório →</a>
+        </article>
+        {% endfor %}
+    </section>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Resumo mensal</h2>
+                <p class="mt-1 text-sm text-gray-500">Distribuição de reservas, atividades e participantes nos últimos 6 meses.</p>
+            </div>
+            <form class="flex items-center gap-2 text-sm">
+                <label class="text-gray-600">
+                    Período inicial
+                    <input type="month" name="inicio" value="{{ filtros.inicio }}" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+                </label>
+                <label class="text-gray-600">
+                    Período final
+                    <input type="month" name="fim" value="{{ filtros.fim }}" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+                </label>
+                <button type="submit" class="rounded bg-uspprimary px-4 py-2 font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Aplicar</button>
+            </form>
+        </div>
+        <div class="mt-6 grid gap-4 lg:grid-cols-3">
+            {% for serie in resumo_mensal %}
+            <div class="rounded border border-gray-200 p-4">
+                <h3 class="text-sm font-semibold text-gray-700">{{ serie.label }}</h3>
+                <ul class="mt-3 space-y-2 text-sm text-gray-600">
+                    {% for ponto in serie.pontos %}
+                    <li class="flex items-center justify-between">
+                        <span>{{ ponto.mes }}</span>
+                        <span class="font-semibold text-gray-800">{{ ponto.valor }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+{% endblock %}

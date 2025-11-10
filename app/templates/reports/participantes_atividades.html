@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Participantes por Atividade | Relatórios{% endblock %}
+
+{% block content %}
+<section class="space-y-8">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Participantes por Atividade</h1>
+            <p class="mt-1 text-sm text-gray-500">Visualize a taxa de ocupação e o total geral de participantes.</p>
+        </div>
+        <form class="flex flex-wrap gap-3 text-sm">
+            <label class="text-gray-600">
+                Período
+                <select name="periodo" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    {% for option in periodo_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="text-gray-600">
+                Status
+                <select name="status" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    <option value="">Todos</option>
+                    {% for option in status_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Aplicar</button>
+        </form>
+    </header>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Resumo geral</h2>
+                <p class="mt-1 text-sm text-gray-500">Participantes confirmados em todas as atividades filtradas.</p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-3">
+                <div class="rounded border border-gray-200 p-4 text-sm text-gray-600">
+                    Total de participantes
+                    <div class="mt-2 text-2xl font-bold text-uspprimary">{{ total_participantes }}</div>
+                </div>
+                <div class="rounded border border-gray-200 p-4 text-sm text-gray-600">
+                    Média por atividade
+                    <div class="mt-2 text-2xl font-bold text-uspprimary">{{ media_por_atividade }}</div>
+                </div>
+                <div class="rounded border border-gray-200 p-4 text-sm text-gray-600">
+                    Capacidade ocupada
+                    <div class="mt-2 text-2xl font-bold text-uspprimary">{{ percentual_ocupacao }}%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Atividade</th>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Educador</th>
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">Capacidade</th>
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">Inscritos</th>
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">Comparecimento</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for atividade in participantes_por_atividade %}
+                    <tr>
+                        <td class="px-4 py-3 text-gray-800">{{ atividade.nome }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ atividade.educador }}</td>
+                        <td class="px-4 py-3 text-right text-gray-700">{{ atividade.capacidade }}</td>
+                        <td class="px-4 py-3 text-right text-gray-700">{{ atividade.inscritos }}</td>
+                        <td class="px-4 py-3 text-right font-semibold text-gray-900">{{ atividade.comparecimento }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-6 text-center text-gray-500">Nenhuma atividade encontrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
+{% endblock %}

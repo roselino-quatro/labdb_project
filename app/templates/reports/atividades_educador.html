@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Atividades por Educador | Relatórios{% endblock %}
+
+{% block content %}
+<section class="space-y-8">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Atividades por Educador</h1>
+            <p class="mt-1 text-sm text-gray-500">Compare o volume de turmas conduzidas e categorias atendidas.</p>
+        </div>
+        <form class="flex flex-wrap gap-3 text-sm">
+            <label class="text-gray-600">
+                Modalidade
+                <select name="modalidade" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    <option value="">Todas</option>
+                    {% for option in modalidade_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="text-gray-600">
+                Período
+                <select name="periodo" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    {% for option in periodo_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Aplicar</button>
+        </form>
+    </header>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Totais por educador</h2>
+        <div class="mt-4 overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Educador</th>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Modalidades</th>
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">Atividades conduzidas</th>
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">Participantes</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for educador in resumo_educadores %}
+                    <tr>
+                        <td class="px-4 py-3 text-gray-800">{{ educador.nome }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ educador.modalidades|join(', ') }}</td>
+                        <td class="px-4 py-3 text-right font-semibold text-gray-900">{{ educador.total_atividades }}</td>
+                        <td class="px-4 py-3 text-right text-gray-700">{{ educador.total_participantes }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="px-4 py-6 text-center text-gray-500">Nenhum educador encontrado para os filtros.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Atividades por categoria</h2>
+        <p class="mt-1 text-sm text-gray-500">Distribuição de atividades de acordo com a categoria de educadores.</p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {% for categoria in categorias %}
+            <article class="rounded border border-gray-200 p-4">
+                <h3 class="text-sm font-semibold text-gray-700">{{ categoria.nome }}</h3>
+                <p class="mt-2 text-3xl font-bold text-uspprimary">{{ categoria.total_atividades }}</p>
+                <p class="mt-1 text-xs text-gray-400">Participantes: {{ categoria.total_participantes }}</p>
+                <ul class="mt-4 space-y-1 text-xs text-gray-500">
+                    {% for detalhe in categoria.detalhes %}
+                    <li>{{ detalhe.modalidade }} · {{ detalhe.qtd }} atividades</li>
+                    {% endfor %}
+                </ul>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+{% endblock %}

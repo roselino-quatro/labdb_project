@@ -1,0 +1,39 @@
+<aside class="hidden w-72 flex-shrink-0 bg-uspprimary text-white lg:block">
+    <div class="flex h-full flex-col">
+        <div class="px-6 py-6 text-xl font-semibold text-uspyellow">Navegação</div>
+        <nav class="flex-1 space-y-1 px-4">
+            <div>
+                <div class="px-2 text-xs font-semibold uppercase tracking-wide text-uspyellow">Geral</div>
+                <a href="{{ build_url('admin.dashboard') or '#' }}" class="mt-1 flex items-center rounded px-2 py-2 text-sm font-medium text-white hover:bg-uspsecondary hover:text-uspprimary">Visão Geral</a>
+                <a href="{{ build_url('reports.overview') or '#' }}" class="mt-1 flex items-center rounded px-2 py-2 text-sm font-medium text-white hover:bg-uspsecondary hover:text-uspprimary">Relatórios</a>
+            </div>
+            <div class="mt-6">
+                <div class="px-2 text-xs font-semibold uppercase tracking-wide text-uspyellow">Administração</div>
+                <a href="{{ build_url('admin.interno_index') or '#' }}" class="mt-1 block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Internos</a>
+                <a href="{{ build_url('admin.externo_index') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Externos</a>
+                <a href="{{ build_url('admin.funcionario_index') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Funcionários</a>
+                <a href="{{ build_url('admin.educador_index') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Educadores</a>
+                <a href="{{ build_url('admin.grupo_extensao_index') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Grupos de Extensão</a>
+                <a href="{{ build_url('admin.instalacao_index') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Instalações</a>
+                <a href="{{ build_url('admin.equipamento_index') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Equipamentos</a>
+                <a href="{{ build_url('admin.aparelho_index') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Aparelhos</a>
+            </div>
+            <div class="mt-6">
+                <div class="px-2 text-xs font-semibold uppercase tracking-wide text-uspyellow">Operações</div>
+                <a href="{{ build_url('admin.reserva_index') or '#' }}" class="mt-1 block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Reservas de Instalações</a>
+                <a href="{{ build_url('admin.atividade_index') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Atividades Esportivas</a>
+            </div>
+            <div class="mt-6">
+                <div class="px-2 text-xs font-semibold uppercase tracking-wide text-uspyellow">Perfis</div>
+                <a href="{{ build_url('staff.dashboard') or '#' }}" class="mt-1 block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Funcionário CEFER</a>
+                <a href="{{ build_url('internal.dashboard') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Interno USP</a>
+                <a href="{{ build_url('external.dashboard') or '#' }}" class="block rounded px-2 py-2 text-sm text-white hover:bg-uspsecondary hover:text-uspprimary">Externo USP</a>
+            </div>
+        </nav>
+        <div class="px-6 py-4 text-xs text-uspsecondary">
+            {% block sidebar_footer %}
+            Gerencie atividades, instalações e participação com precisão.
+            {% endblock %}
+        </div>
+    </div>
+</aside>

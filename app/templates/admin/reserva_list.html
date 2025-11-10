@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% import 'components/macros.html' as ui %}
+{% block title %}Reservas | Administração{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Reservas de Instalações</h1>
+            <p class="mt-1 text-sm text-gray-500">Acompanhe solicitações, confirmações e histórico de uso dos espaços.</p>
+        </div>
+        <a href="{{ build_url('admin.reserva_create') or '#' }}" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Nova reserva</a>
+    </header>
+
+    {{ ui.filter_bar([
+        {'label': 'Instalação', 'name': 'instalacao', 'type': 'text', 'placeholder': 'Nome da instalação', 'value': request.args.instalacao if request and request.args else ''},
+        {'label': 'Status', 'name': 'status', 'type': 'select', 'options': status_options}
+    ]) }}
+
+    {{ ui.table([
+        'Instalação', 'Responsável', 'Início', 'Fim', 'Status'
+    ], reservas, 'Nenhuma reserva cadastrada.') }}
+</section>
+{% endblock %}

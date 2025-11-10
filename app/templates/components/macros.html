@@ -1,0 +1,76 @@
+{% macro table(headers, rows, empty_message='Nenhum registro disponível.') %}
+<div class="overflow-hidden rounded-lg bg-white shadow">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+            <tr>
+                {% for header in headers %}
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">{{ header }}</th>
+                {% endfor %}
+                <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">Ações</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+            {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    {% for cell in row.cells %}
+                    <td class="px-4 py-3 text-gray-700">{{ cell }}</td>
+                    {% endfor %}
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex justify-end space-x-2">
+                            <a href="{{ row.edit_url }}" class="rounded bg-uspsecondary px-3 py-1 text-xs font-semibold text-white hover:bg-uspprimary">Editar</a>
+                            <form method="post" action="{{ row.delete_url }}" class="inline">
+                                <button type="submit" class="rounded bg-red-500 px-3 py-1 text-xs font-semibold text-white hover:bg-red-600">Excluir</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="{{ headers|length + 1 }}" class="px-4 py-6 text-center text-gray-500">{{ empty_message }}</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+{% macro filter_bar(filters) %}
+<form class="mb-4 flex flex-wrap items-end gap-4 rounded-lg bg-white p-4 shadow">
+    {% for item in filters %}
+    <label class="flex flex-col text-sm text-gray-600">
+        <span class="mb-1 font-medium">{{ item.label }}</span>
+        {% if item.type == 'select' %}
+            <select name="{{ item.name }}" class="rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                {% for option in item.options %}
+                <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                {% endfor %}
+            </select>
+        {% elif item.type == 'date' %}
+            <input type="date" name="{{ item.name }}" value="{{ item.value }}" class="rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+        {% else %}
+            <input type="text" name="{{ item.name }}" value="{{ item.value }}" placeholder="{{ item.placeholder }}" class="rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+        {% endif %}
+    </label>
+    {% endfor %}
+    <div class="ml-auto flex space-x-2">
+        <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Aplicar</button>
+        <a href="." class="rounded bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300">Limpar</a>
+    </div>
+</form>
+{% endmacro %}
+
+{% macro stat_cards(items) %}
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {% for item in items %}
+    <div class="rounded-lg bg-white p-4 shadow">
+        <div class="text-sm font-medium text-gray-500">{{ item.label }}</div>
+        <div class="mt-2 text-2xl font-semibold text-gray-900">{{ item.value }}</div>
+        {% if item.description %}
+        <div class="mt-1 text-xs text-gray-400">{{ item.description }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endmacro %}

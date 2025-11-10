@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% import 'components/macros.html' as ui %}
+{% block title %}Painel Funcionário | CEFER{% endblock %}
+
+{% block content %}
+<section class="space-y-8">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-3xl font-semibold text-gray-900">Painel do Funcionário</h1>
+            <p class="mt-2 text-sm text-gray-500">Coordene atividades, instalações, equipamentos e convites.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ url_for('staff.atividade_nova') if url_for else '#' }}" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Nova atividade</a>
+            <a href="{{ url_for('staff.convites') if url_for else '#' }}" class="rounded border border-uspprimary px-4 py-2 text-sm font-semibold text-uspprimary hover:bg-uspprimary hover:text-white">Convidar externo</a>
+        </div>
+    </header>
+
+    {{ ui.stat_cards([
+        {'label': 'Atividades ativas', 'value': stats.atividades_ativas, 'description': 'Turmas em execução neste período'},
+        {'label': 'Reservas hoje', 'value': stats.reservas_hoje, 'description': 'Instalações com agendamentos'},
+        {'label': 'Equipamentos emprestados', 'value': stats.equipamentos_emprestados, 'description': 'Itens a devolver até o fim do dia'},
+        {'label': 'Visitantes externos', 'value': stats.externos_aguardando, 'description': 'Convites aguardando validação'}
+    ]) }}
+
+    <section class="grid gap-6 lg:grid-cols-2">
+        <article class="rounded-lg bg-white p-6 shadow">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Atividades de hoje</h2>
+                <a href="{{ url_for('staff.atividades') if url_for else '#' }}" class="text-sm font-semibold text-uspprimary hover:text-uspyellow">Gerenciar</a>
+            </div>
+            <ul class="mt-4 space-y-3 text-sm text-gray-600">
+                {% for atividade in atividades_hoje %}
+                <li class="rounded border border-gray-200 p-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-gray-800">{{ atividade.nome }}</span>
+                        <span class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">{{ atividade.horario }}</span>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Educador: {{ atividade.educador }} · Local: {{ atividade.local }}</p>
+                </li>
+                {% else %}
+                <li class="text-center text-gray-400">Sem atividades hoje.</li>
+                {% endfor %}
+            </ul>
+        </article>
+        <article class="rounded-lg bg-white p-6 shadow">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Instalações monitoradas</h2>
+                <a href="{{ url_for('staff.instalacoes') if url_for else '#' }}" class="text-sm font-semibold text-uspprimary hover:text-uspyellow">Ver todas</a>
+            </div>
+            <ul class="mt-4 space-y-3 text-sm text-gray-600">
+                {% for instalacao in instalacoes_monitoradas %}
+                <li class="flex items-center justify-between rounded border border-gray-200 p-3">
+                    <div>
+                        <p class="font-semibold text-gray-800">{{ instalacao.nome }}</p>
+                        <p class="text-xs text-gray-500">Próxima reserva: {{ instalacao.proxima_reserva }}</p>
+                    </div>
+                    <span class="rounded bg-{{ 'green' if instalacao.status == 'Disponível' else 'yellow' if instalacao.status == 'Em uso' else 'red' }}-100 px-2 py-1 text-xs font-semibold text-{{ 'green' if instalacao.status == 'Disponível' else 'yellow' if instalacao.status == 'Em uso' else 'red' }}-800">{{ instalacao.status }}</span>
+                </li>
+                {% else %}
+                <li class="text-center text-gray-400">Nenhuma instalação monitorada.</li>
+                {% endfor %}
+            </ul>
+        </article>
+    </section>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900">Alertas de equipamentos</h2>
+            <a href="{{ url_for('staff.equipamentos') if url_for else '#' }}" class="text-sm font-semibold text-uspprimary hover:text-uspyellow">Inventário</a>
+        </div>
+        <ul class="mt-4 divide-y divide-gray-100 text-sm text-gray-600">
+            {% for alerta in alertas_equipamentos %}
+            <li class="flex items-center justify-between py-3">
+                <div>
+                    <p class="font-semibold text-gray-800">{{ alerta.descricao }}</p>
+                    <p class="text-xs text-gray-400">Status: {{ alerta.status }} · Ação: {{ alerta.acao }}</p>
+                </div>
+                <a href="{{ alerta.link }}" class="text-uspprimary hover:text-uspyellow">Resolver</a>
+            </li>
+            {% else %}
+            <li class="py-3 text-center text-gray-400">Sem alertas pendentes.</li>
+            {% endfor %}
+        </ul>
+    </section>
+</section>
+{% endblock %}

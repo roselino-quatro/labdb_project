@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Espaços Mais Utilizados | Relatórios{% endblock %}
+
+{% block content %}
+<section class="space-y-8">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Espaços Mais Utilizados</h1>
+            <p class="mt-1 text-sm text-gray-500">Identifique ambientes com maior demanda, frequência e duração média de uso.</p>
+        </div>
+        <form class="flex flex-wrap gap-3 text-sm">
+            <label class="text-gray-600">
+                Janela de análise
+                <select name="janela" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    {% for option in janela_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="text-gray-600">
+                Tipo de espaço
+                <select name="tipo" class="ml-2 rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    <option value="">Todos</option>
+                    {% for option in tipo_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Atualizar</button>
+        </form>
+    </header>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Top espaços</h2>
+        <div class="mt-4 grid gap-4 lg:grid-cols-3">
+            {% for espaco in ranking_espacos %}
+            <article class="rounded border border-gray-200 p-4">
+                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-gray-400">
+                    <span>#{{ loop.index }}</span>
+                    <span>{{ espaco.tipo }}</span>
+                </div>
+                <h3 class="mt-2 text-lg font-semibold text-gray-800">{{ espaco.nome }}</h3>
+                <p class="mt-2 text-sm text-gray-500">{{ espaco.descricao }}</p>
+                <dl class="mt-4 grid gap-3 text-sm text-gray-600">
+                    <div class="flex items-center justify-between">
+                        <dt>Reservas</dt>
+                        <dd class="font-semibold text-gray-900">{{ espaco.total_reservas }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt>Frequência semanal</dt>
+                        <dd class="font-semibold text-gray-900">{{ espaco.frequencia_semana }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt>Duração média (h)</dt>
+                        <dd class="font-semibold text-gray-900">{{ espaco.duracao_media }}</dd>
+                    </div>
+                </dl>
+            </article>
+            {% else %}
+            <p class="col-span-full text-center text-gray-500">Nenhum espaço encontrado.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Série histórica de uso</h2>
+        <p class="mt-1 text-sm text-gray-500">Comparativo mensal de ocupação para espaços selecionados.</p>
+        <div class="mt-4 overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Espaço</th>
+                        {% for mes in meses %}
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">{{ mes }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for linha in historico_uso %}
+                    <tr>
+                        <td class="px-4 py-3 text-gray-800">{{ linha.nome }}</td>
+                        {% for valor in linha.valores %}
+                        <td class="px-4 py-3 text-right text-gray-700">{{ valor }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{{ meses|length + 1 }}" class="px-4 py-6 text-center text-gray-500">Sem dados históricos.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
+{% endblock %}

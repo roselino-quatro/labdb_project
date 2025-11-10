@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar atividade' if atividade else 'Nova atividade' }} | Administração{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'Editar atividade' if atividade else 'Cadastrar atividade' }}</h1>
+        <p class="mt-1 text-sm text-gray-500">Defina informações da atividade, responsáveis e capacidade de participantes.</p>
+    </div>
+
+    <form method="post" action="" class="space-y-5 rounded-lg bg-white p-6 shadow">
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Nome da atividade
+                <input type="text" name="nome" value="{{ form.nome.data if form else atividade.nome }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Modalidade
+                <select name="modalidade" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    {% for option in modalidade_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Educador responsável
+                <input type="text" name="educador" value="{{ form.educador.data if form else atividade.educador }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Período
+                <input type="text" name="periodo" value="{{ form.periodo.data if form else atividade.periodo }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" placeholder="Ex.: Seg e Qua, 18h-19h" />
+            </label>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-medium text-gray-700">Vagas totais
+                <input type="number" name="vagas_totais" min="0" value="{{ form.vagas_totais.data if form else atividade.vagas_totais }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            </label>
+            <label class="text-sm font-medium text-gray-700">Status
+                <select name="status" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                    <option value="andamento">Em andamento</option>
+                    <option value="prevista">Prevista</option>
+                    <option value="concluida">Concluída</option>
+                </select>
+            </label>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700">Descrição
+                <textarea name="descricao" rows="4" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">{{ form.descricao.data if form else atividade.descricao }}</textarea>
+            </label>
+        </div>
+        <div class="flex items-center justify-end space-x-3">
+            <a href="{{ build_url('admin.atividade_index') or '#' }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">Cancelar</a>
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Salvar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

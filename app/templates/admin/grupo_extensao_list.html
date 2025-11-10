@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% import 'components/macros.html' as ui %}
+{% block title %}Grupos de Extensão | Administração{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Grupos de Extensão</h1>
+            <p class="mt-1 text-sm text-gray-500">Gerencie grupos parceiros, modalidades e responsáveis pelas atividades.</p>
+        </div>
+        <a href="{{ build_url('admin.grupo_extensao_create') or '#' }}" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Novo grupo</a>
+    </header>
+
+    {{ ui.filter_bar([
+        {'label': 'Busca por nome', 'name': 'q', 'type': 'text', 'placeholder': 'Nome do grupo', 'value': request.args.q if request and request.args else ''},
+        {'label': 'Modalidade', 'name': 'modalidade', 'type': 'select', 'options': modalidade_options}
+    ]) }}
+
+    {{ ui.table([
+        'Nome', 'Modalidade', 'Responsável', 'Contato', 'Status'
+    ], grupos, 'Nenhum grupo cadastrado.') }}
+</section>
+{% endblock %}

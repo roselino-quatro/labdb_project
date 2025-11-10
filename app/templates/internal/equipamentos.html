@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Reservar Equipamentos | Interno USP{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Reservar Equipamentos</h1>
+            <p class="mt-1 text-sm text-gray-500">Solicite materiais esportivos para suas atividades autorizadas.</p>
+        </div>
+    </header>
+
+    <form method="post" action="{{ url_for('internal.reservar_equipamento') if url_for else '#' }}" class="grid gap-4 rounded-lg bg-white p-6 shadow text-sm md:grid-cols-2">
+        <label class="text-gray-600">Equipamento
+            <select name="equipamento_id" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required>
+                {% for option in equipamento_options %}
+                <option value="{{ option.value }}">{{ option.label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="text-gray-600">Quantidade
+            <input type="number" name="quantidade" min="1" value="1" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+        </label>
+        <label class="text-gray-600">Data de uso
+            <input type="date" name="data_uso" value="{{ hoje }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+        </label>
+        <label class="text-gray-600">Horário
+            <input type="time" name="hora" value="{{ hora_padrao }}" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" required />
+        </label>
+        <label class="md:col-span-2 text-gray-600">Atividade vinculada
+            <select name="atividade_id" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                {% for option in atividade_options %}
+                <option value="{{ option.value }}">{{ option.label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="md:col-span-2 text-gray-600">Observações
+            <textarea name="observacoes" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary"></textarea>
+        </label>
+        <div class="md:col-span-2 flex justify-end">
+            <button type="submit" class="rounded bg-uspprimary px-4 py-2 font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Solicitar</button>
+        </div>
+    </form>
+
+    <section class="rounded-lg bg-white p-6 shadow">
+        <h2 class="text-lg font-semibold text-gray-900">Solicitações recentes</h2>
+        <div class="mt-4 overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Equipamento</th>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Quantidade</th>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Data</th>
+                        <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Status</th>
+                        <th class="px-4 py-3 text-right font-semibold uppercase tracking-wide text-gray-500">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for solicitacao in solicitacoes %}
+                    <tr>
+                        <td class="px-4 py-3 text-gray-800">{{ solicitacao.equipamento }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ solicitacao.quantidade }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ solicitacao.data }}</td>
+                        <td class="px-4 py-3">
+                            <span class="rounded bg-{{ solicitacao.badge_color }}-100 px-2 py-1 text-xs font-semibold text-{{ solicitacao.badge_color }}-800">{{ solicitacao.status }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <div class="flex justify-end space-x-2">
+                                <a href="{{ solicitacao.detalhes_url }}" class="rounded border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100">Detalhes</a>
+                                <a href="{{ solicitacao.cancelar_url }}" class="rounded bg-red-500 px-3 py-1 text-xs font-semibold text-white hover:bg-red-600">Cancelar</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-6 text-center text-gray-500">Nenhuma solicitação realizada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
+{% endblock %}
