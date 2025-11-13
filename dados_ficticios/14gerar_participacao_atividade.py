@@ -71,7 +71,7 @@ def gerar_participacao_atividade(nome_arquivo_sql, nome_arquivo_csv,
     print(f"Arquivo SQL gerado: {nome_arquivo_sql}")
     print(f"Arquivo CSV gerado: {nome_arquivo_csv}")
 
-# Exemplo de uso:
+# Executa o gerador
 gerar_participacao_atividade(
     nome_arquivo_sql='upgrade_participacao_atividade.sql',
     nome_arquivo_csv='participacao_atividade.csv',

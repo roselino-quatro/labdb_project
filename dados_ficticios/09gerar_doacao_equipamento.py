@@ -69,5 +69,5 @@ def gerar_doacoes(nome_arquivo_pessoas_restantes, nome_arquivo_equipamentos,
     print(f"Arquivo CSV de doações gerado: {nome_arquivo_csv_doacao}")
     print(f"Total de doações geradas: {len(doacoes)} (sobre {total_pessoas} pessoas)")
 
-# Exemplo de uso:
+# Executa o gerador
 gerar_doacoes('pessoas_restantes.csv', 'equipamentos.csv', 'upgrade_doacao.sql', 'doacoes.csv')

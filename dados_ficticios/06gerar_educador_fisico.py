@@ -41,5 +41,5 @@ def gerar_educadores_fisicos(nome_arquivo_csv_funcionario, nome_arquivo_sql_educ
     print(f"Arquivo SQL de educadores físicos gerado: {nome_arquivo_sql_educador}")
     print(f"Arquivo CSV de educadores físicos gerado: {nome_arquivo_csv_educador}")
 
-# Exemplo de uso:
+# Executa o gerador
 gerar_educadores_fisicos('funcionarios.csv', 'upgrade_educador_fisico.sql', 'educador_fisico.csv')

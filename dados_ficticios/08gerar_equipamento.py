@@ -94,5 +94,5 @@ def gerar_equipamentos(nome_arquivo_csv_instalacao, nome_arquivo_sql_equipamento
     print(f"Arquivo SQL de equipamentos gerado: {nome_arquivo_sql_equipamento}")
     print(f"Arquivo CSV de equipamentos gerado: {nome_arquivo_csv_equipamento}")
 
-# Exemplo de uso:
+# Executa o gerador
 gerar_equipamentos('instalacoes.csv', 'upgrade_equipamento.sql', 'equipamentos.csv')

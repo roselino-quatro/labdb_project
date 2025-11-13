@@ -55,5 +55,5 @@ def gerar_atribuicoes_funcionario(nome_arquivo_csv_funcionario, nome_arquivo_sql
     print(f"Arquivo SQL de atribuições gerado: {nome_arquivo_sql_atribuicao}")
     print(f"Arquivo CSV de atribuições gerado: {nome_arquivo_csv_atribuicao}")
 
-# Exemplo de uso:
+# Executa o gerador
 gerar_atribuicoes_funcionario('funcionarios.csv', 'upgrade_funcionario_atribuicao.sql', 'funcionario_atribuicao.csv')
