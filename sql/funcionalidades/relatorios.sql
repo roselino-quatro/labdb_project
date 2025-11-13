@@ -38,19 +38,6 @@ FROM reserva r
 JOIN instalacao i ON i.id_instalacao = r.id_instalacao
 GROUP BY i.nome;
 
--- PL/SQL laço para listar instalações e imprimir o total de reservas:
-DO $$
-DECLARE
-    rec RECORD;
-    total INT;
-BEGIN
-    FOR rec IN SELECT id_instalacao, nome FROM instalacao LOOP
-        SELECT COUNT(*) INTO total 
-        FROM reserva WHERE id_instalacao = rec.id_instalacao;
-        RAISE NOTICE 'Instalação: %, Reservas: %', rec.nome, total;
-    END LOOP;
-END $$;
-
 -- Total de reservas e duração total por instalação
 SELECT 
     i.NOME AS NOME_INSTALACAO,

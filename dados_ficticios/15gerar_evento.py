@@ -48,6 +48,5 @@ def gerar_eventos(nome_arquivo_reservas, nome_arquivo_sql_eventos, nome_arquivo_
     print(f"Total de reservas: {total_reservas}")
     print(f"Total de eventos gerados: {len(eventos)} ({len(eventos)/total_reservas:.0%})")
 
-
-if __name__ == "__main__":
-    gerar_eventos('reservas.csv', 'upgrade_evento.sql', 'eventos.csv')
+# Executa o gerador
+gerar_eventos('reservas.csv', 'upgrade_evento.sql', 'eventos.csv')

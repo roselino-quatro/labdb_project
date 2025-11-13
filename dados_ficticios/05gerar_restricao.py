@@ -53,5 +53,5 @@ def gerar_restricoes_funcionario(nome_arquivo_csv_funcionario, nome_arquivo_sql_
     print(f"Arquivo SQL de restrições gerado: {nome_arquivo_sql_restricao}")
     print(f"Arquivo CSV de restrições gerado: {nome_arquivo_csv_restricao}")
 
-# Exemplo de uso:
+# Executa o gerador
 gerar_restricoes_funcionario('funcionarios.csv', 'upgrade_funcionario_restricao.sql', 'funcionario_restricao.csv')

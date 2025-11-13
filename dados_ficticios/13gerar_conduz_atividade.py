@@ -38,5 +38,5 @@ def gerar_conduz_atividade(nome_arquivo_sql, nome_arquivo_csv, nome_arquivo_csv_
     print(f"Arquivo SQL de CONDUZ_ATIVIDADE gerado: {nome_arquivo_sql}")
     print(f"Arquivo CSV de CONDUZ_ATIVIDADE gerado: {nome_arquivo_csv}")
 
-# Exemplo de uso
+# Executa o gerador
 gerar_conduz_atividade('upgrade_conduz_atividade.sql', 'conduz_atividade.csv', 'educador_fisico.csv', 'atividades.csv')

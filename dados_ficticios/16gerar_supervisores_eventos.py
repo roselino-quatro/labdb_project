@@ -56,11 +56,10 @@ def gerar_supervisao_evento(
     print(f"Total de eventos supervisionados: {len(eventos_supervisionados)} ({len(eventos_supervisionados)/total_eventos:.0%})")
     print(f"Total de linhas geradas (supervisões): {len(supervisoes)}")
 
-# Exemplo de uso:
-if __name__ == "__main__":
-    gerar_supervisao_evento(
-        nome_arquivo_funcionarios='funcionarios.csv',
-        nome_arquivo_eventos='eventos.csv',
-        nome_arquivo_sql='upgrade_supervisao_evento.sql',
-        nome_arquivo_csv='supervisao_evento.csv'
-    )
+# Executa o gerador
+gerar_supervisao_evento(
+    nome_arquivo_funcionarios='funcionarios.csv',
+    nome_arquivo_eventos='eventos.csv',
+    nome_arquivo_sql='upgrade_supervisao_evento.sql',
+    nome_arquivo_csv='supervisao_evento.csv'
+)

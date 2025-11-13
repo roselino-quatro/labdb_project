@@ -1,61 +1,80 @@
 import csv
 import random
 
-# Função para gerar o nome da instalação (exemplo)
-def gerar_nome_instalacao():
-    nomes = [
-        "Ginásio Principal", "Quadra de Vôlei", "Piscina Olímpica", "Sala de Musculação", 
-        "Campo de Futebol", "Sala de Yoga", "Pista de Atletismo", "Campo de Basquete", 
-        "Sala de Dança", "Quadra de Tênis"
-    ]
-    return nomes  # Retorna lista para combinar sem repetição
+# Dicionário de instalações únicas e coerentes
+NOMES_INSTALACOES_POR_TIPO = {
+    'Quadra': [
+        'Quadra Poliesportiva A', 'Quadra Poliesportiva B',
+        'Quadra de Tênis 1', 'Quadra de Tênis 2',
+        'Quadra de Peteca', 'Quadra de Areia Vôlei', 'Quadra de Areia Beach Tennis'
+    ],
+    'Piscina': ['Piscina Olímpica', 'Piscina Recreativa'],
+    'Academia': ['Academia Principal', 'Espaço Multifuncional Musculação'],
+    'Sala': ['Sala de Dança', 'Sala de Ginástica', 'Sala de Alongamento', 'Salão de Eventos'],
+    'Campo': ['Campo de Futebol Principal', 'Campo de Futebol Society'],
+    'Vestiário': ['Vestiário Masculino A', 'Vestiário Feminino A', 'Vestiário Masculino B', 'Vestiário Feminino B']
+}
 
-# Função para gerar o tipo de instalação
-def gerar_tipo_instalacao():
-    tipos = ["Ginásio", "Quadra de Vôlei", "Piscina", "Sala de Musculação", "Campo de Futebol", 
-             "Sala de Yoga", "Pista de Atletismo", "Campo de Basquete", "Sala de Dança", "Quadra de Tênis"]
-    return tipos  # Retorna lista para combinar sem repetição
-
-# Função para gerar a capacidade da instalação
 def gerar_capacidade():
-    return random.randint(10, 200)  # Capacidade entre 10 e 200
+    """Gera capacidade aleatória entre 10 e 200."""
+    return random.randint(10, 200)
 
-# Função para determinar se a instalação é reservável (S ou N)
-def gerar_reservavel():
-    return random.choice(['S', 'N'])
+def gerar_reservavel(tipo):
+    """Define se é reservável com base no tipo."""
+    return 'N' if tipo == 'Vestiário' else random.choice(['S', 'N'])
 
-# Função para gerar instalações únicas
-def gerar_instalacoes():
-    nomes = gerar_nome_instalacao()
-    tipos = gerar_tipo_instalacao()
-    
-    combinacoes_possiveis = [(n, t) for n in nomes for t in tipos]  # Todas as combinações possíveis
-    random.shuffle(combinacoes_possiveis)  # Aleatorizar a ordem
-    
-    # Escolher 30 combinações únicas
-    escolhidas = combinacoes_possiveis[:30]
-    
-    instalacoes = []
-    for idx, (nome, tipo) in enumerate(escolhidas, start=1):  # ID_INSTALACAO a partir de 1
+def gerar_instalacoes(nome_arquivo_sql, nome_arquivo_csv, num_registros):
+    """
+    Gera dados únicos e coerentes para a tabela INSTALACAO
+    e salva em arquivos CSV e SQL (sem uso de os/pathlib).
+    """
+
+    print(f"Gerando {num_registros} instalações únicas...")
+
+    # Cria a lista completa de instalações únicas a partir do dicionário
+    instalacoes_unicas = []
+    for tipo, nomes in NOMES_INSTALACOES_POR_TIPO.items():
+        for nome in nomes:
+            instalacoes_unicas.append((nome, tipo))
+
+    # Ajusta caso o número solicitado exceda o disponível
+    if num_registros > len(instalacoes_unicas):
+        print(f"Aviso: número solicitado ({num_registros}) maior que o total disponível ({len(instalacoes_unicas)}).")
+        num_registros = len(instalacoes_unicas)
+
+    # Seleciona instalações únicas aleatoriamente
+    instalacoes_selecionadas = random.sample(instalacoes_unicas, num_registros)
+
+    # Gera os registros com ID, capacidade e reservabilidade
+    registros_csv = []
+    registros_sql = []
+    for id_inst, (nome, tipo) in enumerate(instalacoes_selecionadas, start=1):
         capacidade = gerar_capacidade()
-        reservavel = gerar_reservavel()
-        instalacoes.append([idx, nome, tipo, capacidade, reservavel])  # Adiciona ID_INSTALACAO
-    
-    # Gerar o SQL
-    with open('upgrade_instalacao.sql', 'w', encoding='utf-8') as sql_file:
-        for id_inst, nome, tipo, capacidade, reservavel in instalacoes:
-            insert_sql = f"INSERT INTO INSTALACAO (ID_INSTALACAO, NOME, TIPO, CAPACIDADE, EH_RESERVAVEL) VALUES ({id_inst}, '{nome}', '{tipo}', {capacidade}, '{reservavel}');\n"
-            sql_file.write(insert_sql)
+        eh_reservavel = gerar_reservavel(tipo)
 
-    # Gerar o CSV
-    with open('instalacoes.csv', 'w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
+        registros_csv.append([id_inst, nome, tipo, capacidade, eh_reservavel])
+
+        nome_sql = nome.replace("'", "''")
+        tipo_sql = tipo.replace("'", "''")
+
+        insert_sql = (
+            f"INSERT INTO INSTALACAO (ID_INSTALACAO, NOME, TIPO, CAPACIDADE, EH_RESERVAVEL) "
+            f"VALUES ({id_inst}, '{nome_sql}', '{tipo_sql}', {capacidade}, '{eh_reservavel}');"
+        )
+        registros_sql.append(insert_sql)
+
+    # Gera o arquivo CSV
+    with open(nome_arquivo_csv, 'w', newline='', encoding='utf-8') as csv_file:
+        writer = csv.writer(csv_file)
         writer.writerow(['ID_INSTALACAO', 'NOME', 'TIPO', 'CAPACIDADE', 'EH_RESERVAVEL'])
-        writer.writerows(instalacoes)
+        writer.writerows(registros_csv)
 
+    # Gera o arquivo SQL
+    with open(nome_arquivo_sql, 'w', encoding='utf-8') as sql_file:
+        sql_file.write('\n'.join(registros_sql))
 
-    print("Arquivo SQL de instalações gerado: upgrade_instalacao.sql")
-    print("Arquivo CSV de instalações gerado: instalacoes.csv")
+    print(f"Arquivo CSV gerado em: {nome_arquivo_csv}")
+    print(f"Arquivo SQL gerado em: {nome_arquivo_sql}")
 
-# Exemplo de uso:
-gerar_instalacoes()
+# Executa o gerador
+gerar_instalacoes('upgrade_instalacao.sql', 'instalacoes.csv', 20)

@@ -26,7 +26,7 @@ class SchemaMigration(BaseMigration):
         self.downgrade('schema')
 
 
-@dataclass  
+@dataclass
 class BasePopulateMigration(BaseMigration, ABC):
     tables = [
         'pessoa', 'interno_usp', 'funcionario', 'funcionario_atribuicao',
@@ -47,8 +47,13 @@ class BasePopulateMigration(BaseMigration, ABC):
 
     def downgrade_populated_db(self):
         for table in reversed(self.tables):
-            self.downgrade(table) 
+            self.downgrade(table)
         self.schema_migration.downgrade_schema()
+
+    # Sobrescrevendo downgrade para usar pasta central
+    def downgrade(self, name: str):
+        folder_path = Path('./sql/downgrades')  # pasta central de downgrades
+        self.dbsession.run_sql_file(folder_path / f'downgrade_{name}.sql')
 
 
 @dataclass
