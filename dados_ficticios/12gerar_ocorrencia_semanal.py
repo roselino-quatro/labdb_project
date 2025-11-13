@@ -1,22 +1,27 @@
 import csv
 import random
-from datetime import time
+from datetime import time, timedelta, datetime
 
 # Função para gerar um horário aleatório de início
+# (somente horas cheias ou meia hora, entre 08:00 e 18:00)
 def gerar_horario_inicio():
     hora = random.randint(8, 18)  # Entre 08:00 e 18:00
-    minuto = random.randint(0, 59)
+    minuto = random.choice([0, 30])  # Apenas :00 ou :30
     return time(hora, minuto)
 
-# Função para gerar um horário de fim (30 a 90 minutos depois do início)
+# Função para gerar um horário de fim (mínimo 1h e máximo 2h depois do início)
 def gerar_horario_fim(horario_inicio):
-    minutos_adicionais = random.randint(30, 90)
-    hora_fim = horario_inicio.hour + (horario_inicio.minute + minutos_adicionais) // 60
-    minuto_fim = (horario_inicio.minute + minutos_adicionais) % 60
-    if hora_fim > 23:  # Ajuste para não passar da meia-noite
-        hora_fim = 23
-        minuto_fim = 59
-    return time(hora_fim, minuto_fim)
+    # Duração entre 60 e 120 minutos
+    duracao_minutos = random.randint(60, 120)
+    
+    inicio_dt = datetime.combine(datetime.today(), horario_inicio)
+    fim_dt = inicio_dt + timedelta(minutes=duracao_minutos)
+    
+    # Se ultrapassar 22h, ajusta para 22:00
+    if fim_dt.hour >= 22:
+        fim_dt = datetime.combine(datetime.today(), time(22, 0))
+    
+    return fim_dt.time()
 
 # Função para gerar um dia da semana aleatório
 def gerar_dia_semana():
@@ -44,8 +49,7 @@ def popular_ocorrencias(nome_arquivo_atividades, nome_arquivo_sql, nome_arquivo_
     for atividade in atividades:
         for _ in range(3):  # 3 ocorrências por atividade
             id_atividade = atividade['id']
-            # Alterado para garantir que o ID_INSTALACAO esteja entre 1 e 30
-            id_instalacao = random.randint(1, 30)  # Ajuste conforme seu banco
+            id_instalacao = random.randint(1, 16)  # Ajuste conforme seu banco
             dia_semana = gerar_dia_semana()
             horario_inicio = gerar_horario_inicio()
             horario_fim = gerar_horario_fim(horario_inicio)
@@ -57,7 +61,8 @@ def popular_ocorrencias(nome_arquivo_atividades, nome_arquivo_sql, nome_arquivo_
             insert_sql = (
                 f"INSERT INTO OCORRENCIA_SEMANAL "
                 f"(ID_ATIVIDADE, ID_INSTALACAO, DIA_SEMANA, HORARIO_INICIO, HORARIO_FIM) "
-                f"VALUES ({ocorrencia[0]}, {ocorrencia[1]}, '{ocorrencia[2]}', '{ocorrencia[3]}', '{ocorrencia[4]}');\n"
+                f"VALUES ({ocorrencia[0]}, {ocorrencia[1]}, '{ocorrencia[2]}', "
+                f"'{ocorrencia[3]}', '{ocorrencia[4]}');\n"
             )
             sql_file.write(insert_sql)
 
@@ -70,6 +75,5 @@ def popular_ocorrencias(nome_arquivo_atividades, nome_arquivo_sql, nome_arquivo_
     print(f"Arquivo SQL de ocorrências gerado: {nome_arquivo_sql}")
     print(f"Arquivo CSV de ocorrências gerado: {nome_arquivo_csv}")
 
-
-# Exemplo de uso
+# Executa o gerador
 popular_ocorrencias('atividades.csv', 'upgrade_ocorrencia_semanal.sql', 'ocorrencias.csv')
