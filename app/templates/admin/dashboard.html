@@ -67,8 +67,8 @@
                     </div>
                     <p class="text-sm text-gray-500">{{ activity.horario_inicio }} - {{ activity.horario_fim }}</p>
                     <p class="text-xs text-gray-400">Group: {{ activity.grupo_extensao or '—' }}</p>
-                    <div class="mt-2 h-2 rounded bg-gray-100">
-                        <div class="h-2 rounded bg-uspprimary" style="width: {{ activity.occupancy_rate }}%;"></div>
+                    <div class="mt-2 h-2 rounded bg-gray-100 overflow-hidden">
+                        <div class="h-2 rounded bg-uspprimary" style="width: {% if activity.occupancy_rate|float > 100 %}100{% else %}{{ activity.occupancy_rate|float }}{% endif %}%;"></div>
                     </div>
                     <p class="mt-1 text-xs text-gray-500">{{ activity.vagas_ocupadas }} / {{ activity.vagas_limite }} seats</p>
                 </div>
