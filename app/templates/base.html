@@ -22,16 +22,16 @@
     </script>
     {% block head_extra %}{% endblock %}
 </head>
-<body class="{{ body_class if body_class else 'min-h-screen bg-gray-100 text-gray-900' }}">
+<body class="{{ body_class if body_class else 'min-h-screen bg-gray-100 text-gray-900 flex flex-col' }}">
     {% if not hide_navbar %}
         {% include 'partials/navbar.html' %}
     {% endif %}
-    <main class="{{ main_class if main_class else 'mx-auto w-full max-w-6xl p-6' }}">
+    <main class="{{ main_class if main_class else 'mx-auto w-full max-w-6xl p-6 flex-1' }}">
         {% include 'partials/messages.html' %}
         {% block content %}{% endblock %}
     </main>
     {% if not hide_footer %}
-        <footer class="bg-white py-4 text-sm text-gray-500 shadow-inner">
+        <footer class="bg-white py-4 text-sm text-gray-500 shadow-inner mt-auto">
             <div class="container mx-auto flex items-center justify-between px-6">
                 <span>CEFER USP &copy; {{ current_year if current_year else '2025' }}</span>
             </div>
