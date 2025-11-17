@@ -9,6 +9,37 @@ from dbsession import DBSession
 from migrations import PopulateMockedFullDbMigration, SchemaMigration
 
 
+def cleanup_csv_files(dados_ficticios_path: Path) -> tuple[int, str]:
+    """
+    Remove apenas arquivos CSV da pasta dados_ficticios.
+
+    Args:
+        dados_ficticios_path: Caminho para a pasta dados_ficticios
+
+    Returns:
+        Tupla com (quantidade_removida, mensagem)
+    """
+    try:
+        if not dados_ficticios_path.exists():
+            return (0, f"Pasta {dados_ficticios_path} não encontrada")
+
+        csv_files = list(dados_ficticios_path.glob("*.csv"))
+        count = 0
+
+        for csv_file in csv_files:
+            try:
+                csv_file.unlink()
+                count += 1
+            except Exception as e:
+                # Log erro individual mas continua tentando os outros
+                print(f"Aviso: Erro ao remover {csv_file.name}: {e}")
+
+        return (count, f"{count} arquivo(s) CSV removido(s) com sucesso")
+
+    except Exception as e:
+        return (0, f"Erro ao limpar CSVs: {str(e)}")
+
+
 @debug_blueprint.post("/populate-db")
 def populate_database():
     """Popula o banco de dados com dados sintéticos."""
@@ -45,6 +76,11 @@ def populate_database():
         migration = PopulateMockedFullDbMigration(dbsession=dbsession)
         migration.upgrade_populated_db()
         dbsession.close()
+
+        # Limpar arquivos CSV após população bem-sucedida
+        # (os CSVs são apenas intermediários e não são mais necessários)
+        count, cleanup_msg = cleanup_csv_files(dados_ficticios_path)
+        print(f"Limpeza de CSVs: {cleanup_msg}")
 
         return jsonify({
             "success": True,
