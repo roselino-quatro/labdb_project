@@ -5,15 +5,30 @@
             <div class="text-lg font-semibold text-gray-800">CEFER Data Hub</div>
         </div>
         <nav class="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-600">
-            <a href="{{ url_for('admin.dashboard') }}" class="hover:text-uspprimary">Admin</a>
-            <a href="{{ url_for('reports.overview') }}" class="hover:text-uspprimary">Reports</a>
-            <a href="{{ url_for('staff.dashboard') }}" class="hover:text-uspprimary">Staff</a>
-            <a href="{{ url_for('internal.dashboard') }}" class="hover:text-uspprimary">Internal</a>
-            <a href="{{ url_for('external.dashboard') }}" class="hover:text-uspprimary">External</a>
+            {% if profile_navigation %}
+                {% for profile in profile_navigation %}
+                    <a href="{{ url_for(profile.endpoint) }}" class="hover:text-uspprimary">
+                        {{ profile.label }}
+                    </a>
+                {% endfor %}
+            {% else %}
+                <span class="text-gray-400">No roles available</span>
+            {% endif %}
         </nav>
-        <a href="{{ url_for('auth.logout') }}"
-           class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">
-            Logout
-        </a>
+        {% set auth_context = session.get('auth_context') %}
+        {% if auth_context %}
+            <div class="flex items-center space-x-3 text-right">
+                <div class="text-xs text-gray-500">{{ auth_context.email }}</div>
+                <a href="{{ url_for('auth.logout') }}"
+                   class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">
+                    Logout
+                </a>
+            </div>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}"
+               class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">
+                Login
+            </a>
+        {% endif %}
     </div>
 </header>

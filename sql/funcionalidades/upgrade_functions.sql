@@ -11,7 +11,7 @@ RETURNS TABLE (
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         r.id_reserva,
         i.nome AS nome_instalacao,
         i.tipo AS tipo_instalacao,
@@ -19,7 +19,7 @@ BEGIN
         r.horario_inicio,
         r.horario_fim
     FROM reserva r
-    JOIN instalacao i 
+    JOIN instalacao i
         ON r.id_instalacao = i.id_instalacao
     WHERE r.cpf_responsavel_interno = cpf_interno
     ORDER BY r.data_reserva, r.horario_inicio;
@@ -43,7 +43,7 @@ RETURNS TABLE (
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         i.id_instalacao,
         i.nome,
         i.tipo,
@@ -77,14 +77,14 @@ RETURNS TABLE (
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         a.id_atividade,
         a.nome AS nome_atividade,
         a.vagas_limite,
         a.data_inicio_periodo AS data_inicio,
         a.data_fim_periodo AS data_fim
     FROM conduz_atividade ca
-    JOIN atividade a 
+    JOIN atividade a
         ON a.id_atividade = ca.id_atividade
     WHERE ca.cpf_educador_fisico = cpf_educador
     ORDER BY a.data_inicio_periodo;
@@ -144,7 +144,7 @@ AS $$
 BEGIN
     -- Seleciona atividades com os filtros aplicados
     RETURN QUERY
-    SELECT 
+    SELECT
         a.id_atividade,
         a.nome AS nome_atividade,
         ge.nome_grupo AS grupo_extensao,
@@ -158,7 +158,7 @@ BEGIN
     LEFT JOIN grupo_extensao ge ON ge.nome_grupo = ag.nome_grupo
     LEFT JOIN ocorrencia_semanal os ON os.id_atividade = a.id_atividade
     LEFT JOIN participacao_atividade pa ON pa.id_atividade = a.id_atividade
-    WHERE 
+    WHERE
         (p_dia_semana IS NULL OR os.dia_semana = p_dia_semana)
         AND (p_grupo_extensao IS NULL OR ge.nome_grupo ILIKE '%' || p_grupo_extensao || '%')
         AND (p_modalidade IS NULL OR a.nome ILIKE '%' || p_modalidade || '%')
@@ -229,3 +229,279 @@ BEGIN
 END;
 $$;
 
+-- === Authentication helpers ===
+
+CREATE OR REPLACE FUNCTION auth_hash_password(p_plain TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_plain IS NULL OR length(trim(p_plain)) = 0 THEN
+        RAISE EXCEPTION 'PASSWORD_REQUIRED';
+    END IF;
+    RETURN crypt(p_plain, gen_salt('bf'));
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_verify_password(p_plain TEXT, p_hash TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_plain IS NULL OR p_hash IS NULL THEN
+        RETURN FALSE;
+    END IF;
+    RETURN crypt(p_plain, p_hash) = p_hash;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_record_login_attempt(
+    p_user_id INT,
+    p_email VARCHAR,
+    p_client_identifier VARCHAR,
+    p_status VARCHAR,
+    p_message TEXT
+) RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO auditoria_login (user_id, email_usuario, client_identifier, status, mensagem)
+    VALUES (p_user_id, p_email, p_client_identifier, p_status, p_message);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_compute_roles(p_cpf VARCHAR)
+RETURNS TEXT[]
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    resolved_roles TEXT[] := ARRAY[]::TEXT[];
+    has_internal BOOLEAN;
+    has_staff BOOLEAN;
+    has_admin BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1 FROM funcionario_atribuicao
+        WHERE cpf_funcionario = p_cpf AND upper(atribuicao) = 'ADMIN'
+    ) INTO has_admin;
+
+    SELECT EXISTS (
+        SELECT 1 FROM funcionario
+        WHERE cpf_interno = p_cpf
+    ) INTO has_staff;
+
+    SELECT EXISTS (
+        SELECT 1 FROM interno_usp
+        WHERE cpf_pessoa = p_cpf
+    ) INTO has_internal;
+
+    IF has_admin THEN
+        resolved_roles := resolved_roles || 'admin';
+    END IF;
+    IF has_staff THEN
+        resolved_roles := resolved_roles || 'staff';
+    END IF;
+    IF has_internal THEN
+        resolved_roles := resolved_roles || 'internal';
+    END IF;
+    IF NOT has_internal THEN
+        resolved_roles := resolved_roles || 'external';
+    END IF;
+
+    RETURN resolved_roles;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_sync_user_roles(p_user_id INT)
+RETURNS TEXT[]
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_cpf VARCHAR(11);
+    v_roles TEXT[] := ARRAY[]::TEXT[];
+BEGIN
+    SELECT cpf INTO v_cpf
+    FROM auth_user
+    WHERE user_id = p_user_id
+      AND is_active;
+
+    IF v_cpf IS NULL THEN
+        RAISE EXCEPTION 'USER_NOT_FOUND_OR_INACTIVE';
+    END IF;
+
+    v_roles := auth_compute_roles(v_cpf);
+
+    IF v_roles IS NULL OR array_length(v_roles, 1) IS NULL THEN
+        DELETE FROM auth_user_role WHERE user_id = p_user_id;
+    ELSE
+        DELETE FROM auth_user_role
+        WHERE user_id = p_user_id
+          AND role_key NOT IN (SELECT UNNEST(v_roles));
+
+        INSERT INTO auth_user_role (user_id, role_key)
+        SELECT p_user_id, resolved_role.role_key
+        FROM UNNEST(v_roles) AS resolved_role(role_key)
+        ON CONFLICT (user_id, role_key) DO NOTHING;
+    END IF;
+
+    RETURN COALESCE(v_roles, ARRAY[]::TEXT[]);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_pick_primary_endpoint(p_roles TEXT[])
+RETURNS VARCHAR
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_endpoint VARCHAR(255);
+BEGIN
+    IF p_roles IS NULL OR array_length(p_roles, 1) IS NULL THEN
+        RETURN '/';
+    END IF;
+
+    SELECT ar.default_endpoint
+    INTO v_endpoint
+    FROM auth_role ar
+    JOIN UNNEST(p_roles) AS resolved_role(role_key) ON ar.role_key = resolved_role.role_key
+    ORDER BY ar.priority ASC
+    LIMIT 1;
+
+    RETURN COALESCE(v_endpoint, '/');
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_register_user(
+    p_cpf VARCHAR,
+    p_email VARCHAR,
+    p_password TEXT
+)
+RETURNS TABLE (
+    user_id INT,
+    cpf VARCHAR,
+    email VARCHAR,
+    roles TEXT[],
+    primary_role VARCHAR,
+    redirect_endpoint VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_person_email VARCHAR(255);
+    v_roles TEXT[];
+BEGIN
+    SELECT email INTO v_person_email
+    FROM pessoa
+    WHERE cpf = p_cpf;
+
+    IF v_person_email IS NULL THEN
+        RAISE EXCEPTION 'PERSON_NOT_FOUND';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM auth_user WHERE cpf = p_cpf) THEN
+        RAISE EXCEPTION 'USER_ALREADY_EXISTS';
+    END IF;
+
+    email := COALESCE(NULLIF(TRIM(p_email), ''), v_person_email);
+
+    IF EXISTS (SELECT 1 FROM auth_user WHERE LOWER(auth_user.email) = LOWER(email)) THEN
+        RAISE EXCEPTION 'EMAIL_ALREADY_USED';
+    END IF;
+
+    INSERT INTO auth_user (cpf, email, password_hash)
+    VALUES (p_cpf, email, auth_hash_password(p_password))
+    RETURNING auth_user.user_id, auth_user.cpf
+    INTO user_id, cpf;
+
+    v_roles := auth_sync_user_roles(user_id);
+    roles := v_roles;
+
+    SELECT ar.role_key
+    INTO primary_role
+    FROM UNNEST(v_roles) AS resolved_role(role_key)
+    JOIN auth_role ar ON ar.role_key = resolved_role.role_key
+    ORDER BY ar.priority
+    LIMIT 1;
+
+    redirect_endpoint := auth_pick_primary_endpoint(v_roles);
+
+    RETURN NEXT;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_login(
+    p_login_identifier TEXT,
+    p_password TEXT,
+    p_client_identifier TEXT
+)
+RETURNS TABLE (
+    user_id INT,
+    cpf VARCHAR,
+    email VARCHAR,
+    roles TEXT[],
+    primary_role VARCHAR,
+    redirect_endpoint VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_user auth_user%ROWTYPE;
+    v_roles TEXT[];
+BEGIN
+    SELECT *
+    INTO v_user
+    FROM auth_user
+    WHERE LOWER(email) = LOWER(p_login_identifier)
+       OR cpf = regexp_replace(p_login_identifier, '\D', '', 'g');
+
+    IF v_user.user_id IS NULL THEN
+        PERFORM auth_record_login_attempt(NULL, NULL, p_client_identifier, 'FAILURE', 'USER_NOT_FOUND');
+        RAISE EXCEPTION 'USER_NOT_FOUND';
+    END IF;
+
+    IF NOT v_user.is_active THEN
+        PERFORM auth_record_login_attempt(v_user.user_id, v_user.email, p_client_identifier, 'LOCKED', 'USER_DISABLED');
+        RAISE EXCEPTION 'USER_DISABLED';
+    END IF;
+
+    IF NOT auth_verify_password(p_password, v_user.password_hash) THEN
+        PERFORM auth_record_login_attempt(v_user.user_id, v_user.email, p_client_identifier, 'FAILURE', 'INVALID_PASSWORD');
+        RAISE EXCEPTION 'INVALID_CREDENTIALS';
+    END IF;
+
+    v_roles := auth_sync_user_roles(v_user.user_id);
+
+    roles := v_roles;
+    user_id := v_user.user_id;
+    cpf := v_user.cpf;
+    email := v_user.email;
+
+    SELECT ar.role_key
+    INTO primary_role
+    FROM UNNEST(v_roles) AS resolved_role(role_key)
+    JOIN auth_role ar ON ar.role_key = resolved_role.role_key
+    ORDER BY ar.priority
+    LIMIT 1;
+
+    redirect_endpoint := auth_pick_primary_endpoint(v_roles);
+
+    PERFORM auth_record_login_attempt(v_user.user_id, v_user.email, p_client_identifier, 'SUCCESS', 'LOGIN_OK');
+
+    RETURN NEXT;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_fetch_roles(p_user_id INT)
+RETURNS TABLE (
+    role_key VARCHAR,
+    label VARCHAR,
+    default_endpoint VARCHAR,
+    priority INT
+)
+LANGUAGE sql
+AS $$
+    SELECT ar.role_key, ar.label, ar.default_endpoint, ar.priority
+    FROM auth_user_role aur
+    JOIN auth_role ar ON ar.role_key = aur.role_key
+    WHERE aur.user_id = p_user_id
+    ORDER BY ar.priority;
+$$;

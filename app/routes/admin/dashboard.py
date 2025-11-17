@@ -1,10 +1,12 @@
 from flask import render_template
 
 from app.routes.admin import admin_blueprint
+from app.routes.decorators import require_roles
 from app.services import sql_queries
 
 
 @admin_blueprint.get("/", endpoint="dashboard")
+@require_roles("admin")
 def dashboard() -> str:
     stats = sql_queries.fetch_all("queries/admin/dashboard_stats.sql")
     upcoming_reservations = sql_queries.fetch_all(

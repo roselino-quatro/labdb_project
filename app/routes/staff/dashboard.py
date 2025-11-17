@@ -1,10 +1,12 @@
 from flask import render_template, request
 
+from app.routes.decorators import require_roles
 from app.routes.staff import staff_blueprint
 from app.services import sql_queries
 
 
 @staff_blueprint.get("/", endpoint="dashboard")
+@require_roles("staff", "admin")
 def dashboard() -> str:
     filters = {
         "weekday": request.args.get("weekday") or None,

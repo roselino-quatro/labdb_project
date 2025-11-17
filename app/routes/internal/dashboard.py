@@ -1,10 +1,12 @@
 from flask import render_template, request
 
+from app.routes.decorators import require_roles
 from app.routes.internal import internal_blueprint
 from app.services import sql_queries
 
 
 @internal_blueprint.get("/", endpoint="dashboard")
+@require_roles("internal", "staff", "admin")
 def dashboard() -> str:
     cpf = request.args.get("cpf") or ""
     reservas = []

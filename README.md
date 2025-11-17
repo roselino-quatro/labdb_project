@@ -26,6 +26,23 @@ Todos os templates recebem dados exclusivamente das consultas em `sql/queries` o
 
 Para criar uma nova página, adicione primeiro o arquivo SQL em `sql/queries/<area>/` e aponte a rota correspondente via `app/services/sql_queries.py`.
 
+## Autenticação SQL-first
+
+A autenticação segue 100% de regras de negócio em SQL. O Python apenas dispara as queries e renderiza templates simples.
+
+- **Schema**: novas tabelas `AUTH_ROLE`, `AUTH_USER` e `AUTH_USER_ROLE` (além do ajuste em `AUDITORIA_LOGIN`) estão descritas em `sql/upgrade_schema.sql`. As funções utilitárias (`auth_hash_password`, `auth_login`, `auth_register_user`, `auth_sync_user_roles`, etc.) ficam em `sql/funcionalidades/upgrade_functions.sql`.
+- **Queries dedicadas**: todos os acessos partem de `sql/queries/auth/` (`login_user.sql`, `register_user.sql`, `fetch_user_roles.sql`, `sync_user_roles.sql`). Cada arquivo invoca diretamente as functions PL/pgSQL.
+- **Fluxo Flask**: `app/routes/auth.py` apenas envia os parâmetros (`cpf`, `email`, `password`, IP) e usa `app/services/auth_session.py` para preencher a sessão (`auth_context`, `profile_access`, `primary_endpoint`). O controle de acesso das páginas usa o decorator leve `app/routes/decorators.py`, que lê apenas o payload salvo em sessão.
+- **Templates**: telas em `app/templates/auth/` (login, register) são minimalistas com Tailwind. Mensagens usam `flash` e são exibidas via `partials/messages.html`.
+- **Sessão**: apenas valores vindos das queries SQL são persistidos (`user_id`, `cpf`, `email`, `roles`, `redirect_endpoint`). As rotas `admin`, `staff`, `internal`, `external` e `reports` verificam roles antes de renderizar qualquer dado.
+
+### Fluxo típico
+
+1. Usuário acessa `/auth/register` e informa CPF/Email já existentes em `PESSOA`; o SQL valida duplicidade, cria o hash com `pgcrypto` e sincroniza os perfis automaticamente via `auth_sync_user_roles`.
+2. Login em `/auth/login` chama `auth_login`, que verifica senha, registra o evento em `AUDITORIA_LOGIN` e devolve `roles` + `redirect_endpoint`.
+3. A sessão Flask guarda apenas o payload retornado pela função. O redirecionamento pós-login privilegia o endpoint do role com maior prioridade (`AUTH_ROLE.priority`).
+4. Qualquer rota protegida usa `@require_roles(...)`. Caso a sessão não possua o role necessário, o usuário retorna para o endpoint primário informado pelo banco.
+
 ## Como rodar
 
 ### 1. Instalar o Docker

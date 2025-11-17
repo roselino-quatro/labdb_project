@@ -23,17 +23,21 @@
     {% block head_extra %}{% endblock %}
 </head>
 <body class="{{ body_class if body_class else 'min-h-screen bg-gray-100 text-gray-900' }}">
-    {% include 'partials/navbar.html' %}
+    {% if not hide_navbar %}
+        {% include 'partials/navbar.html' %}
+    {% endif %}
     <main class="{{ main_class if main_class else 'mx-auto w-full max-w-6xl p-6' }}">
         {% include 'partials/messages.html' %}
         {% block content %}{% endblock %}
     </main>
+    {% if not hide_footer %}
     <footer class="bg-white py-4 text-sm text-gray-500 shadow-inner">
         <div class="container mx-auto flex items-center justify-between px-6">
             <span>CEFER USP &copy; {{ current_year if current_year else '2025' }}</span>
             <span>Data operations powered by SQL</span>
         </div>
     </footer>
+    {% endif %}
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
-{% block title %}Auditoria de Logins | CEFER{% endblock %}
+{% block title %}Login Audit | CEFER{% endblock %}
 
 {% block content %}
 <div class="mb-6 flex items-center justify-between">
     <div>
-        <h1 class="text-2xl font-semibold text-gray-900">Auditoria de Logins</h1>
-        <p class="mt-1 text-sm text-gray-500">Acompanhe tentativas de acesso, sucesso e falhas de autenticação.</p>
+        <h1 class="text-2xl font-semibold text-gray-900">Login audit</h1>
+        <p class="mt-1 text-sm text-gray-500">Monitor every authentication attempt, including failures and locks.</p>
     </div>
     <form class="flex items-center space-x-2">
-        <input type="text" name="q" placeholder="Pesquisar por usuário ou IP" class="w-64 rounded border border-gray-300 px-3 py-2 text-sm focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+        <input type="text" name="q" placeholder="Search by user or IP" class="w-64 rounded border border-gray-300 px-3 py-2 text-sm focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
         <select name="status" class="rounded border border-gray-300 px-3 py-2 text-sm focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
-            <option value="">Todos status</option>
-            <option value="SUCCESS">Sucesso</option>
-            <option value="FAILURE">Falha</option>
-            <option value="LOCKED">Conta bloqueada</option>
+            <option value="">All statuses</option>
+            <option value="SUCCESS">Success</option>
+            <option value="FAILURE">Failure</option>
+            <option value="LOCKED">Locked</option>
         </select>
-        <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Filtrar</button>
+        <button type="submit" class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary">Filter</button>
     </form>
 </div>
 
@@ -23,11 +23,11 @@
     <table class="min-w-full divide-y divide-gray-200 text-sm">
         <thead class="bg-gray-50">
             <tr>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Data/Hora</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Usuário</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">IP Origem</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Timestamp</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">User</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Source IP</th>
                 <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Status</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Mensagem</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-gray-500">Message</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 bg-white">
@@ -48,7 +48,7 @@
             {% else %}
             <tr>
                 <td colspan="5" class="px-4 py-6 text-center text-gray-500">
-                    Nenhum registro encontrado para os filtros selecionados.
+                    No entries found for the selected filters.
                 </td>
             </tr>
             {% endfor %}

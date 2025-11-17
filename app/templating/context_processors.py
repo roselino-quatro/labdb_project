@@ -1,26 +1,27 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import Any
 
-from flask import Flask, session
+from flask import Flask, get_flashed_messages
+
+from app.services import auth_session
 
 
 PROFILE_DEFINITIONS: list[dict[str, str]] = [
     {
         "key": "staff",
         "endpoint": "staff.dashboard",
-        "label": "Funcionário CEFER",
+        "label": "Staff Workspace",
     },
     {
         "key": "internal",
         "endpoint": "internal.dashboard",
-        "label": "Interno USP",
+        "label": "Internal USP Portal",
     },
     {
         "key": "external",
         "endpoint": "external.dashboard",
-        "label": "Externo USP",
+        "label": "External Guests",
     },
 ]
 
@@ -31,17 +32,23 @@ PROFILE_KEY_INDEX: set[str] = {
 
 def register_context_processors(app: Flask) -> None:
     @app.context_processor
-    def inject_profile_navigation() -> dict[str, list[dict[str, str]]]:
-        allowed_profile_keys = _resolve_allowed_profiles(session.get("profile_access"))
-        allowed_profile_keys_set = set(allowed_profile_keys)
+    def inject_template_defaults() -> dict[str, Any]:
+        allowed_profile_keys = set(
+            key for key in auth_session.get_session_roles() if key in PROFILE_KEY_INDEX
+        )
 
         profile_navigation = [
             _build_profile_payload(profile_definition)
             for profile_definition in PROFILE_DEFINITIONS
-            if profile_definition["key"] in allowed_profile_keys_set
+            if profile_definition["key"] in allowed_profile_keys
         ]
 
-        return {"profile_navigation": profile_navigation}
+        messages = get_flashed_messages(with_categories=True)
+
+        return {
+            "profile_navigation": profile_navigation,
+            "messages": messages,
+        }
 
 
 def _build_profile_payload(profile_definition: dict[str, str]) -> dict[str, str]:
@@ -50,29 +57,3 @@ def _build_profile_payload(profile_definition: dict[str, str]) -> dict[str, str]
         "endpoint": profile_definition["endpoint"],
         "label": profile_definition["label"],
     }
-
-
-def _resolve_allowed_profiles(raw_value: Any) -> Iterable[str]:
-    if raw_value is None:
-        return [profile_definition["key"] for profile_definition in PROFILE_DEFINITIONS]
-
-    if isinstance(raw_value, dict):
-        return [
-            str(key)
-            for key, value in raw_value.items()
-            if value and key in PROFILE_KEY_INDEX
-        ]
-
-    if isinstance(raw_value, (list, tuple, set)):
-        return [
-            str(value)
-            for value in raw_value
-            if str(value) in PROFILE_KEY_INDEX
-        ]
-
-    if isinstance(raw_value, str):
-        if raw_value in PROFILE_KEY_INDEX:
-            return [raw_value]
-        return []
-
-    return []
