@@ -16,13 +16,13 @@ Todos os templates recebem dados exclusivamente das consultas em `sql/queries` o
 
 ### Mapa de queries
 
-| Área/Endpoint | Fonte SQL |
-| --- | --- |
-| `admin.dashboard` | `sql/queries/admin/dashboard_stats.sql`, `.../upcoming_reservations.sql`, `.../activity_enrollment.sql` |
-| `reports.overview` | Arquivos em `sql/queries/reports/` (rollup, cube, grouping sets, ranking) |
-| `staff.dashboard` | `sql/queries/staff/activities.sql` (invoca `listar_atividades`) |
-| `internal.dashboard` | `sql/queries/internal/reservas_por_interno.sql`, `.../instalacoes_disponiveis.sql` |
-| `external.dashboard` | `sql/queries/external/external_participations.sql` |
+| Área/Endpoint        | Fonte SQL                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------- |
+| `admin.dashboard`    | `sql/queries/admin/dashboard_stats.sql`, `.../upcoming_reservations.sql`, `.../activity_enrollment.sql` |
+| `reports.overview`   | Arquivos em `sql/queries/reports/` (rollup, cube, grouping sets, ranking)                               |
+| `staff.dashboard`    | `sql/queries/staff/activities.sql` (invoca `listar_atividades`)                                         |
+| `internal.dashboard` | `sql/queries/internal/reservas_por_interno.sql`, `.../instalacoes_disponiveis.sql`                      |
+| `external.dashboard` | `sql/queries/external/external_participations.sql`                                                      |
 
 Para criar uma nova página, adicione primeiro o arquivo SQL em `sql/queries/<area>/` e aponte a rota correspondente via `app/services/sql_queries.py`.
 
