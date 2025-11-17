@@ -11,7 +11,16 @@
     <form method="get" class="grid gap-4 rounded-lg bg-white p-4 shadow sm:grid-cols-3">
         <label class="text-sm text-gray-600">
             <span class="mb-1 block font-medium">Dia da semana</span>
-            <input type="text" name="weekday" value="{{ filters.weekday or '' }}" placeholder="ex: SEGUNDA" class="w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" />
+            <select name="weekday" class="w-full rounded border border-gray-300 px-3 py-2 focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary">
+                <option value="">Todos os dias</option>
+                <option value="SEGUNDA" {% if filters.weekday == 'SEGUNDA' %}selected{% endif %}>Segunda-feira</option>
+                <option value="TERCA" {% if filters.weekday == 'TERCA' %}selected{% endif %}>Terça-feira</option>
+                <option value="QUARTA" {% if filters.weekday == 'QUARTA' %}selected{% endif %}>Quarta-feira</option>
+                <option value="QUINTA" {% if filters.weekday == 'QUINTA' %}selected{% endif %}>Quinta-feira</option>
+                <option value="SEXTA" {% if filters.weekday == 'SEXTA' %}selected{% endif %}>Sexta-feira</option>
+                <option value="SABADO" {% if filters.weekday == 'SABADO' %}selected{% endif %}>Sábado</option>
+                <option value="DOMINGO" {% if filters.weekday == 'DOMINGO' %}selected{% endif %}>Domingo</option>
+            </select>
         </label>
         <label class="text-sm text-gray-600">
             <span class="mb-1 block font-medium">Grupo de extensão</span>
