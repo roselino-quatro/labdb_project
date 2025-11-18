@@ -10,7 +10,7 @@ NOMES_INSTALACOES_POR_TIPO = {
     ],
     'Piscina': ['Piscina Olímpica', 'Piscina Recreativa'],
     'Academia': ['Academia Principal', 'Espaço Multifuncional Musculação'],
-    'Sala': ['Sala de Dança', 'Sala de Ginástica', 'Sala de Alongamento', 'Salão de Eventos'],
+    'Sala': ['Sala de Dança', 'Sala de Ginástica', 'Sala de Alongamento', 'Salão de Eventos', 'Sala de Depoisito'],
     'Campo': ['Campo de Futebol Principal', 'Campo de Futebol Society'],
     'Vestiário': ['Vestiário Masculino A', 'Vestiário Feminino A', 'Vestiário Masculino B', 'Vestiário Feminino B']
 }
