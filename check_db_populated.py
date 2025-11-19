@@ -21,8 +21,8 @@ def is_db_populated():
         result = dbsession.fetch_one(check_table_query)
 
         if result and result['count'] > 0:
-            # Verifica se a tabela tem dados (usando aspas para manter case-sensitive)
-            count_query = 'SELECT COUNT(*) as count FROM "PESSOA";'
+            # Verifica se a tabela tem dados (PostgreSQL armazena em lowercase)
+            count_query = 'SELECT COUNT(*) as count FROM pessoa;'
             count_result = dbsession.fetch_one(count_query)
 
             if count_result and count_result['count'] > 0:

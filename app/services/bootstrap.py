@@ -5,7 +5,7 @@ from pathlib import Path
 from flask import current_app
 
 from app.services import sql_queries
-from app.services.data_generator import populate_database
+from data_generators.data_generator import populate_database
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SQL_ROOT = PROJECT_ROOT / "sql"

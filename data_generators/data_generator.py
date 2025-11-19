@@ -2,35 +2,35 @@
 Módulo centralizado para geração de dados sintéticos no banco de dados.
 
 Este módulo unifica todas as formas de popular o banco, usando os scripts Python
-existentes em dados_ficticios/ como fonte única de verdade.
+existentes nesta pasta como fonte única de verdade.
 """
 from pathlib import Path
 import sys
 
 # Adiciona o diretório raiz ao path para importar os módulos de geração
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Importa todas as funções de geração
-from dados_ficticios.pessoas.g01gerar_pessoas import gerar_pessoas
-from dados_ficticios.pessoas.g02gerar_interno_usp import gerar_interno_usp
-from dados_ficticios.pessoas.g03gerar_funcionario import gerar_funcionarios
-from dados_ficticios.pessoas.g04gerar_atribuicoes import gerar_atribuicoes_funcionario
-from dados_ficticios.pessoas.g05gerar_restricao import gerar_restricoes_funcionario
-from dados_ficticios.pessoas.g06gerar_educador_fisico import gerar_educadores_fisicos
-from dados_ficticios.infraestrutura.g07gerar_instalacao import gerar_instalacoes
-from dados_ficticios.infraestrutura.g08gerar_equipamento import gerar_equipamentos
-from dados_ficticios.infraestrutura.g09gerar_doacao_equipamento import gerar_doacoes
-from dados_ficticios.reservas.g10gerar_reservas import gerar_reservas
-from dados_ficticios.atividades.g11gerar_atividade import gerar_atividades
-from dados_ficticios.atividades.g12gerar_ocorrencia_semanal import popular_ocorrencias
-from dados_ficticios.atividades.g13gerar_conduz_atividade import gerar_conduz_atividade
-from dados_ficticios.atividades.g14gerar_participacao_atividade import gerar_participacao_atividade
-from dados_ficticios.eventos.g15gerar_evento import gerar_eventos
-from dados_ficticios.eventos.g16gerar_supervisores_eventos import gerar_supervisao_evento
-from dados_ficticios.grupos.g17gerar_grupo_extensao import gerar_grupos_extensao
-from dados_ficticios.grupos.g18gerar_atividade_grupo_extensao import gerar_atividade_grupo_extensao
-from dados_ficticios.reservas.g19gerar_reserva_equipamento import gerar_reservas_equipamento
+from data_generators.pessoas.g01gerar_pessoas import gerar_pessoas
+from data_generators.pessoas.g02gerar_interno_usp import gerar_interno_usp
+from data_generators.pessoas.g03gerar_funcionario import gerar_funcionarios
+from data_generators.pessoas.g04gerar_atribuicoes import gerar_atribuicoes_funcionario
+from data_generators.pessoas.g05gerar_restricao import gerar_restricoes_funcionario
+from data_generators.pessoas.g06gerar_educador_fisico import gerar_educadores_fisicos
+from data_generators.infraestrutura.g07gerar_instalacao import gerar_instalacoes
+from data_generators.infraestrutura.g08gerar_equipamento import gerar_equipamentos
+from data_generators.infraestrutura.g09gerar_doacao_equipamento import gerar_doacoes
+from data_generators.reservas.g10gerar_reservas import gerar_reservas
+from data_generators.atividades.g11gerar_atividade import gerar_atividades
+from data_generators.atividades.g12gerar_ocorrencia_semanal import popular_ocorrencias
+from data_generators.atividades.g13gerar_conduz_atividade import gerar_conduz_atividade
+from data_generators.atividades.g14gerar_participacao_atividade import gerar_participacao_atividade
+from data_generators.eventos.g15gerar_evento import gerar_eventos
+from data_generators.eventos.g16gerar_supervisores_eventos import gerar_supervisao_evento
+from data_generators.grupos.g17gerar_grupo_extensao import gerar_grupos_extensao
+from data_generators.grupos.g18gerar_atividade_grupo_extensao import gerar_atividade_grupo_extensao
+from data_generators.reservas.g19gerar_reserva_equipamento import gerar_reservas_equipamento
 
 
 # Ordem de execução das funções de geração (respeitando dependências)

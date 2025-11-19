@@ -1,7 +1,7 @@
 import pytest
 from collections import OrderedDict
 from migrations import SchemaMigration
-from app.services.data_generator import populate_database
+from data_generators.data_generator import populate_database
 from app.services.database_downgrade import downgrade_database
 
 
