@@ -1,17 +1,25 @@
+"""
+Script para fazer downgrade do banco de dados.
+
+Remove todos os dados e o schema.
+"""
 from dbsession import DBSession
-from migrations import PopulateMockedFullDbMigration
+from app.services.database_downgrade import downgrade_database_and_schema
+
 
 def downgrade_db():
-    # Criando a sessão do banco
-    dbsession = DBSession()  
-    
-    # Criando a instância da migração
-    migration = PopulateMockedFullDbMigration(dbsession=dbsession)
-    
-    # Executando a migração de downgrade
-    print("Iniciando o downgrade do banco...")
-    migration.downgrade_populated_db()
-    print("Downgrade concluído com sucesso!")
+    """Remove todos os dados e o schema do banco."""
+    dbsession = DBSession()
+
+    try:
+        print("=" * 60)
+        print("Iniciando o downgrade do banco...")
+        print("=" * 60)
+        downgrade_database_and_schema(dbsession)
+        print("✅ Downgrade concluído com sucesso!")
+    finally:
+        dbsession.close()
+
 
 if __name__ == "__main__":
     downgrade_db()

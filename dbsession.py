@@ -76,6 +76,15 @@ class DBSession:
             cursor.execute(query, params or {})
         self.connection.commit()
 
+    def executemany(
+        self,
+        query: str,
+        params_list: list[tuple] | list[list],
+    ) -> None:
+        with self.connection.cursor() as cursor:
+            cursor.executemany(query, params_list)
+        self.connection.commit()
+
     def close(self):
         self.connection.close()
 

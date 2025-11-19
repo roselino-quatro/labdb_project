@@ -1,6 +1,8 @@
 import pytest
 from collections import OrderedDict
-from migrations import PopulateMockedMinimalDbMigration
+from migrations import SchemaMigration
+from data_generators.data_generator import populate_database
+from app.services.database_downgrade import downgrade_database
 
 
 def count_table_records(cursor, table_name, schema='tests'):
@@ -56,13 +58,17 @@ def test_populate_minimal_db_migration(dbsession):
 
     ALL_TABLES = list(EXPECTED_TABLES_RECORDS.keys())
 
-    migration = PopulateMockedMinimalDbMigration(dbsession=dbsession)
-    migration.upgrade_populated_db()
+    # Criar schema e popular dados
+    schema_migration = SchemaMigration(dbsession=dbsession)
+    schema_migration.upgrade_schema()
+    populate_database(dbsession)
 
     with dbsession.connection.cursor() as cursor:
         assert_upgrade(cursor, EXPECTED_TABLES_RECORDS)
 
-    migration.downgrade_populated_db()
+    # Fazer downgrade de dados e schema
+    downgrade_database(dbsession)
+    schema_migration.downgrade_schema()
 
     with dbsession.connection.cursor() as cursor:
         assert_downgrade(cursor, ALL_TABLES)
