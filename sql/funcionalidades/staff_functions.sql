@@ -163,6 +163,54 @@ BEGIN
 END;
 $$;
 
+-- PROCEDURE para inscrever participante em atividade com verificação de vagas:
+CREATE OR REPLACE PROCEDURE inscrever_participante_atividade(
+    p_cpf_participante VARCHAR(11),
+    p_id_atividade INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Verifica se a atividade existe
+    IF NOT EXISTS (
+        SELECT 1
+        FROM atividade
+        WHERE id_atividade = p_id_atividade
+    ) THEN
+        RAISE EXCEPTION 'A atividade com ID % não existe.', p_id_atividade;
+    END IF;
+
+    -- Verifica se o participante já está inscrito na atividade
+    IF EXISTS (
+        SELECT 1
+        FROM participacao_atividade
+        WHERE cpf_participante = p_cpf_participante
+        AND id_atividade = p_id_atividade
+    ) THEN
+        RAISE NOTICE 'O participante já está inscrito nesta atividade.';
+        RETURN;
+    END IF;
+
+    -- Verifica se há vagas disponíveis para a atividade
+    IF EXISTS (
+        SELECT 1
+        FROM atividade a
+        LEFT JOIN participacao_atividade pa ON pa.id_atividade = a.id_atividade
+        WHERE a.id_atividade = p_id_atividade
+        GROUP BY a.vagas_limite
+        HAVING COUNT(pa.cpf_participante) >= a.vagas_limite
+    ) THEN
+        RAISE EXCEPTION 'A atividade com ID % já está com as vagas esgotadas.', p_id_atividade;
+    END IF;
+
+    -- Inscreve o participante na atividade
+    INSERT INTO participacao_atividade (cpf_participante, id_atividade, data_inscricao)
+    VALUES (p_cpf_participante, p_id_atividade, CURRENT_DATE);
+
+    RAISE NOTICE 'Inscrição realizada com sucesso para a atividade com ID %.', p_id_atividade;
+END;
+$$;
+
 -- PROCEDURE para remover um participante de uma atividade
 CREATE OR REPLACE PROCEDURE remover_participante_atividade(
     p_cpf_participante VARCHAR,
