@@ -1,47 +1,19 @@
-import subprocess
-import sys
 from pathlib import Path
 
 from flask import jsonify
 
 from app.routes.debug import debug_blueprint
 from dbsession import DBSession
-from migrations import PopulateMockedFullDbMigration, SchemaMigration
+from migrations import SchemaMigration
 from populate_db import populate_db
+from app.services.database_downgrade import downgrade_database
 
 
 @debug_blueprint.post("/populate-db")
 def populate_database():
-    """Popula o banco de dados com dados sintéticos."""
+    """Popula o banco de dados com dados sintéticos usando o sistema unificado."""
     try:
-        # Obter o diretório raiz do projeto (assumindo que estamos em app/routes/debug/)
-        project_root = Path(__file__).parent.parent.parent.parent
-        dados_ficticios_path = project_root / "dados_ficticios"
-        gerar_dados_script = dados_ficticios_path / "gerar_dados.py"
-
-        if not gerar_dados_script.exists():
-            return jsonify({
-                "success": False,
-                "message": f"Script de geração de dados não encontrado em: {gerar_dados_script}"
-            }), 500
-
-        # Executar script de geração de dados
-        result = subprocess.run(
-            [sys.executable, str(gerar_dados_script)],
-            cwd=str(dados_ficticios_path),
-            capture_output=True,
-            text=True,
-            timeout=300  # 5 minutos de timeout
-        )
-
-        if result.returncode != 0:
-            error_msg = result.stderr or result.stdout or "Erro desconhecido"
-            return jsonify({
-                "success": False,
-                "message": f"Erro ao gerar dados: {error_msg}"
-            }), 500
-
-        # Popular banco de dados
+        # Usa o método unificado que cria schema e popula dados
         populate_db()
 
         return jsonify({
@@ -49,11 +21,6 @@ def populate_database():
             "message": "Banco de dados populado com sucesso!"
         })
 
-    except subprocess.TimeoutExpired:
-        return jsonify({
-            "success": False,
-            "message": "Timeout ao gerar dados sintéticos. O processo demorou mais de 5 minutos."
-        }), 500
     except Exception as e:
         return jsonify({
             "success": False,
@@ -70,13 +37,13 @@ def clear_database():
         bootstrap_module._schema_ready = False
 
         dbsession = DBSession()
-        migration = PopulateMockedFullDbMigration(dbsession=dbsession)
+        schema_migration = SchemaMigration(dbsession)
 
         # Limpar todos os dados e schema
-        migration.downgrade_populated_db()
+        downgrade_database(dbsession)
+        schema_migration.downgrade_schema()
 
         # Recriar o schema vazio (sem dados, mas com estrutura)
-        schema_migration = SchemaMigration(dbsession=dbsession)
         schema_migration.upgrade_schema()
 
         # Verificar se o schema foi criado corretamente

@@ -41,55 +41,10 @@ def check_db_populated():
         print("Assumindo que banco não está populado.")
         return False
 
-def check_sql_files_exist():
-    """Verifica se os arquivos SQL de população já existem."""
-    project_root = Path(__file__).parent
-    populate_dir = project_root / "sql" / "populate_mocked_full_db"
-
-    if not populate_dir.exists():
-        return False
-
-    # Verificar se pelo menos um arquivo SQL existe
-    sql_files = list(populate_dir.glob("upgrade_*.sql"))
-    return len(sql_files) > 0
-
 def populate_database():
-    """Popula o banco de dados com dados sintéticos."""
+    """Popula o banco de dados com dados sintéticos usando o sistema unificado."""
     print("=== Iniciando população do banco de dados ===")
 
-    # Obter o diretório raiz do projeto
-    project_root = Path(__file__).parent
-    dados_ficticios_path = project_root / "dados_ficticios"
-    gerar_dados_script = dados_ficticios_path / "gerar_dados.py"
-
-    # Verificar se os arquivos SQL já existem
-    sql_files_exist = check_sql_files_exist()
-
-    if not sql_files_exist:
-        if not gerar_dados_script.exists():
-            print(f"ERRO: Script de geração de dados não encontrado em: {gerar_dados_script}")
-            return False
-
-        # Gerar dados sintéticos apenas se os arquivos SQL não existirem
-        print("Gerando dados sintéticos (arquivos SQL não encontrados)...")
-        try:
-            result = subprocess.run(
-                [sys.executable, str(gerar_dados_script)],
-                cwd=str(dados_ficticios_path),
-                check=True,
-                timeout=300  # 5 minutos de timeout
-            )
-        except subprocess.TimeoutExpired:
-            print("ERRO: Timeout ao gerar dados sintéticos. O processo demorou mais de 5 minutos.")
-            return False
-        except subprocess.CalledProcessError as e:
-            print(f"ERRO: Falha ao gerar dados sintéticos: {e}")
-            return False
-    else:
-        print("Arquivos SQL já existem. Pulando geração de dados sintéticos.")
-
-    # Popular banco de dados
-    print("Populando banco de dados...")
     try:
         from populate_db import populate_db
         populate_db()
@@ -97,6 +52,8 @@ def populate_database():
         return True
     except Exception as e:
         print(f"ERRO: Falha ao popular banco de dados: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def main():

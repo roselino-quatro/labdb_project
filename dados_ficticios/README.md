@@ -19,11 +19,10 @@ Os scripts estão organizados em pastas por domínio de negócio:
 
 ### Geração completa de dados
 ```bash
-cd dados_ficticios
-python gerar_dados.py
+python populate_db.py
 ```
 
-Este script executa todos os geradores na ordem correta de dependência e insere os dados diretamente no banco de dados.
+Este comando cria o schema e executa todos os geradores na ordem correta de dependência, inserindo os dados diretamente no banco de dados.
 
 ---
 
@@ -123,7 +122,7 @@ Este script executa todos os geradores na ordem correta de dependência e insere
 
 - Todos os scripts inserem dados **diretamente no banco de dados**, não geram mais arquivos CSV ou SQL intermediários.
 - A ordem de execução é crítica devido às dependências entre as tabelas.
-- Os scripts são executados automaticamente pelo `gerar_dados.py` na ordem correta.
+- Os scripts são executados automaticamente pelo `populate_db.py` na ordem correta.
 - Cada domínio está isolado em sua própria pasta para facilitar manutenção e compreensão.
 
 ---

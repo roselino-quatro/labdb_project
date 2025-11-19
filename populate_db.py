@@ -1,17 +1,32 @@
+"""
+Ponto de entrada único para popular o banco de dados.
+
+Este script cria o schema e popula o banco com dados sintéticos completos.
+"""
+from pathlib import Path
 from dbsession import DBSession
-from migrations import PopulateMockedFullDbMigration
+from app.services.data_generator import populate_database
+
 
 def populate_db():
-    # Criando a sessão do banco
+    """Cria o schema e popula o banco de dados com dados completos."""
     dbsession = DBSession()
 
-    # Criando a instância da migração
-    migration = PopulateMockedFullDbMigration(dbsession=dbsession)
+    try:
+        # Criar schema primeiro
+        print("=" * 60)
+        print("Criando schema do banco de dados...")
+        print("=" * 60)
+        schema_file = Path('./sql/upgrade_schema.sql')
+        dbsession.run_sql_file(str(schema_file))
+        print("✅ Schema criado com sucesso!\n")
 
-    # Executando a migração de populações
-    print("Iniciando a migração de populações do banco...")
-    migration.upgrade_populated_db()
-    print("Migração de populações concluída com sucesso!")
+        # Popular banco com dados
+        populate_database(dbsession)
+
+    finally:
+        dbsession.close()
+
 
 if __name__ == "__main__":
     populate_db()

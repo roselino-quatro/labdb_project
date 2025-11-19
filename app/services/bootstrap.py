@@ -5,13 +5,13 @@ from pathlib import Path
 from flask import current_app
 
 from app.services import sql_queries
+from app.services.data_generator import populate_database
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SQL_ROOT = PROJECT_ROOT / "sql"
 SCHEMA_FILE = SQL_ROOT / "upgrade_schema.sql"
 FUNCTIONS_FILE = SQL_ROOT / "funcionalidades" / "upgrade_functions.sql"
 TRIGGERS_FILE = SQL_ROOT / "funcionalidades" / "upgrade_triggers.sql"
-POPULATE_DIR = SQL_ROOT / "populate_mocked_minimal_db"
 
 _schema_ready = False
 
@@ -121,12 +121,14 @@ def _apply_schema(db_session) -> None:
 
 
 def _apply_sample_data(db_session) -> None:
-    if not POPULATE_DIR.exists():
-        return
-
-    for sql_file in sorted(POPULATE_DIR.glob("*.sql")):
-        current_app.logger.info("Loading sample data from %s", sql_file)
-        db_session.run_sql_file(str(sql_file))
+    """Popula o banco com dados usando o sistema unificado."""
+    current_app.logger.info("Populando banco com dados...")
+    try:
+        populate_database(db_session)
+        current_app.logger.info("Dados populados com sucesso")
+    except Exception as e:
+        current_app.logger.error(f"Erro ao popular dados: {e}", exc_info=True)
+        # Não re-raise para não quebrar o bootstrap se a população falhar
 
 
 def _apply_plpgsql_assets(db_session) -> None:
