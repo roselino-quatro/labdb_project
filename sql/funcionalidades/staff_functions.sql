@@ -9,7 +9,7 @@ RETURNS TABLE (
 )
 AS $$
 BEGIN
-    RETURN QUERY
+    RETURN QUERY    
     SELECT 
         a.id_atividade,
         a.nome AS nome_atividade,
