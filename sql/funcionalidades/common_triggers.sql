@@ -33,3 +33,5 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_checar_formacao_educador
 BEFORE INSERT ON conduz_atividade
 FOR EACH ROW EXECUTE FUNCTION checar_formacao_educador();
+
+-- TRIGGER para impedir reservas conflitantes na mesma instalação:
