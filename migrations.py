@@ -7,7 +7,7 @@ from pathlib import Path
 class BaseMigration:
     dbsession: DBSession
     folder: str = ''
-    
+
     def upgrade(self, name: str):
         folder_path = Path('./sql/') / self.folder
         self.dbsession.run_sql_file(folder_path / f'upgrade_{name}.sql')
@@ -33,9 +33,9 @@ class BasePopulateMigration(BaseMigration, ABC):
         'funcionario_restricao', 'educador_fisico', 'instalacao', 'equipamento',
         'doacao', 'atividade', 'ocorrencia_semanal', 'reserva', 'conduz_atividade',
         'participacao_atividade', 'evento', 'supervisao_evento', 'grupo_extensao',
-        'atividade_grupo_extensao'
+        'atividade_grupo_extensao', 'usuario_senha'
     ]
-    
+
     @property
     def schema_migration(self):
         return SchemaMigration(self.dbsession)

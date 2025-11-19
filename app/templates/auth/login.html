@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% set hide_sidebar = True %}
+{% set hide_navbar = True %}
+{% set hide_footer = True %}
+{% set main_class = 'flex min-h-screen items-center justify-center bg-gradient-to-br from-uspprimary to-uspsecondary p-6' %}
+{% block title %}Login | CEFER{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-md rounded-lg bg-white p-8 shadow-xl">
+    <div class="mb-6 text-center">
+        <span class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-uspprimary text-xl font-bold text-white">CE</span>
+        <h1 class="mt-4 text-2xl font-bold text-gray-900">Acesse o Sistema CEFER</h1>
+        <p class="mt-2 text-sm text-gray-500">Gerencie atividades, reservas e usuários com segurança.</p>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-4 space-y-2">
+                {% for category, message in messages %}
+                    <div class="rounded-lg p-3 text-sm {% if category == 'error' %}bg-red-50 text-red-800{% elif category == 'success' %}bg-green-50 text-green-800{% else %}bg-blue-50 text-blue-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <form method="post" action="{{ url_for('auth.login') }}" class="space-y-4">
+        <div>
+            <label for="email" class="mb-1 block text-sm font-medium text-gray-700">E-mail institucional</label>
+            <input id="email" name="email" type="email" required class="w-full rounded border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" placeholder="nome.sobrenome@usp.br" />
+        </div>
+        <div>
+            <label for="password" class="mb-1 block text-sm font-medium text-gray-700">Senha</label>
+            <input id="password" name="password" type="password" required class="w-full rounded border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-uspprimary focus:outline-none focus:ring-1 focus:ring-uspprimary" placeholder="Digite sua senha" />
+        </div>
+        <button type="submit" class="w-full rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white transition hover:bg-uspsecondary hover:text-uspprimary">Entrar</button>
+    </form>
+    <div class="mt-6 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+        <h2 class="mb-2 font-semibold text-gray-800">Perfis com acesso</h2>
+        <ul class="space-y-1">
+            <li>Administrador: gerenciamento completo do CEFER.</li>
+            <li>Funcionário CEFER: administração de atividades e instalações.</li>
+            <li>Interno USP: reservas, inscrições e convites.</li>
+            <li>Externo USP: acesso mediante convite validado.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

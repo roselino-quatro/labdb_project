@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Convites externos{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header>
+        <h1 class="text-2xl font-semibold text-gray-900">Convites externos</h1>
+    </header>
+
+    <div class="overflow-x-auto rounded-lg bg-white shadow">
+        <table class="min-w-full text-sm">
+            <thead class="border-b text-left text-gray-500">
+                <tr>
+                    <th class="px-4 py-3">Participante</th>
+                    <th class="px-4 py-3">E-mail</th>
+                    <th class="px-4 py-3">Atividade</th>
+                    <th class="px-4 py-3">Anfitrião</th>
+                    <th class="px-4 py-3">NUSP do Anfitrião</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for record in participations %}
+                <tr>
+                    <td class="px-4 py-3 font-medium text-gray-900">{{ record.participant_name }}</td>
+                    <td class="px-4 py-3">{{ record.participant_email }}</td>
+                    <td class="px-4 py-3">{{ record.activity_name }}</td>
+                    <td class="px-4 py-3">{{ record.host_name }}</td>
+                    <td class="px-4 py-3">{{ record.host_nusp }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-4 py-6 text-center text-gray-500">Não há convites para participantes externos.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

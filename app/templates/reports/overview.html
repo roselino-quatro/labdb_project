@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <header>
+        <h1 class="text-2xl font-semibold text-gray-900">Relatórios operacionais</h1>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="rounded-lg bg-white p-4 shadow">
+            <h2 class="text-lg font-semibold text-gray-900">Consolidado de reservas</h2>
+            <div class="mt-4 max-h-96 overflow-x-auto overflow-y-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="border-b text-left text-gray-500">
+                        <tr>
+                            <th class="px-3 py-2">Instalação</th>
+                            <th class="px-3 py-2">Mês</th>
+                            <th class="px-3 py-2">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for row in reservation_rollup %}
+                        <tr>
+                            <td class="px-3 py-2">{{ row.installation_name or 'Total' }}</td>
+                            <td class="px-3 py-2">{{ row.month_number or '—' }}</td>
+                            <td class="px-3 py-2 font-semibold text-gray-900">{{ row.total_reservations }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="px-3 py-6 text-center text-gray-500">Nenhum dado de reserva disponível.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="rounded-lg bg-white p-4 shadow">
+            <h2 class="text-lg font-semibold text-gray-900">Atividades por educador</h2>
+            <div class="mt-4 max-h-96 overflow-x-auto overflow-y-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="border-b text-left text-gray-500">
+                        <tr>
+                            <th class="px-3 py-2">Conselho</th>
+                            <th class="px-3 py-2">Categoria</th>
+                            <th class="px-3 py-2">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for row in activities_cube %}
+                        <tr>
+                            <td class="px-3 py-2">{{ row.council_number or 'Todos' }}</td>
+                            <td class="px-3 py-2">{{ row.category or 'Todos' }}</td>
+                            <td class="px-3 py-2 font-semibold text-gray-900">{{ row.total_activities }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="px-3 py-6 text-center text-gray-500">Nenhum dado de atividade disponível.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="rounded-lg bg-white p-4 shadow">
+            <h2 class="text-lg font-semibold text-gray-900">Participantes por atividade</h2>
+            <div class="mt-4 max-h-96 overflow-x-auto overflow-y-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="border-b text-left text-gray-500">
+                        <tr>
+                            <th class="px-3 py-2">Atividade</th>
+                            <th class="px-3 py-2">Participantes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for row in participants_totals %}
+                        <tr>
+                            <td class="px-3 py-2">{{ row.activity_name or 'Total' }}</td>
+                            <td class="px-3 py-2 font-semibold text-gray-900">{{ row.total_participants }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2" class="px-3 py-6 text-center text-gray-500">Nenhum dado de participante disponível.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="rounded-lg bg-white p-4 shadow">
+            <h2 class="text-lg font-semibold text-gray-900">Ranking de instalações</h2>
+            <div class="mt-4 max-h-96 overflow-x-auto overflow-y-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="border-b text-left text-gray-500">
+                        <tr>
+                            <th class="px-3 py-2">Posição</th>
+                            <th class="px-3 py-2">Instalação</th>
+                            <th class="px-3 py-2">Reservas</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for row in installation_ranking %}
+                        <tr>
+                            <td class="px-3 py-2 font-semibold text-gray-900">#{{ row.ranking }}</td>
+                            <td class="px-3 py-2">{{ row.installation_name }}</td>
+                            <td class="px-3 py-2">{{ row.total_reservations }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="px-3 py-6 text-center text-gray-500">Nenhum ranking disponível.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

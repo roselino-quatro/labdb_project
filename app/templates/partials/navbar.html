@@ -1,0 +1,42 @@
+<header class="bg-white shadow">
+  <div
+    class="container mx-auto flex flex-wrap items-center justify-between gap-4 px-6 py-4"
+  >
+    <div class="flex items-center space-x-3">
+      <span
+        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-uspprimary text-white font-semibold"
+        >CE</span
+      >
+      <div class="text-lg font-semibold text-gray-800">CEFER</div>
+    </div>
+    <nav
+      class="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-600"
+    >
+      <a href="{{ url_for('admin.dashboard') }}" class="hover:text-uspprimary"
+        >Administração</a
+      >
+      <a href="{{ url_for('reports.overview') }}" class="hover:text-uspprimary"
+        >Relatórios</a
+      >
+      <a href="{{ url_for('staff.dashboard') }}" class="hover:text-uspprimary"
+        >Equipe</a
+      >
+      <a
+        href="{{ url_for('internal.dashboard') }}"
+        class="hover:text-uspprimary"
+        >Interno</a
+      >
+      <a
+        href="{{ url_for('external.dashboard') }}"
+        class="hover:text-uspprimary"
+        >Externo</a
+      >
+    </nav>
+    <a
+      href="{{ url_for('auth.logout') }}"
+      class="rounded bg-uspprimary px-4 py-2 text-sm font-semibold text-white hover:bg-uspsecondary hover:text-uspprimary"
+    >
+      Sair
+    </a>
+  </div>
+</header>
