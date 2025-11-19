@@ -1,6 +1,10 @@
-import csv
 import random
+import sys
 from datetime import datetime, timedelta
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from dbsession import DBSession
 
 # Função para gerar uma data de reserva aleatória
 def gerar_data_reserva():
@@ -34,60 +38,51 @@ def gerar_horarios_reserva():
     return horario_inicio.time(), horario_fim.time()
 
 # Função para gerar as reservas
-def gerar_reservas(nome_arquivo_internos, nome_arquivo_instalacoes, nome_arquivo_sql_reservas, nome_arquivo_csv_reservas):
-    # Ler o arquivo de pessoas internas
-    with open(nome_arquivo_internos, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        header_pessoas = next(reader)
-        pessoas = list(reader)
+def gerar_reservas(dbsession):
+    # Buscar pessoas internas
+    internos_result = dbsession.fetch_all("SELECT CPF_PESSOA FROM INTERNO_USP ORDER BY CPF_PESSOA")
+    cpfs_internos = [row['cpf_pessoa'] for row in internos_result]
 
-    # Ler o arquivo de instalações
-    with open(nome_arquivo_instalacoes, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        header_instalacoes = next(reader)
-        instalacoes = list(reader)
+    # Buscar instalações
+    instalacoes_result = dbsession.fetch_all("SELECT ID_INSTALACAO FROM INSTALACAO ORDER BY ID_INSTALACAO")
+    ids_instalacoes = [row['id_instalacao'] for row in instalacoes_result]
 
     # Selecionar 50% das pessoas aleatoriamente
-    total_pessoas = len(pessoas)
+    total_pessoas = len(cpfs_internos)
     percentual_50 = int(total_pessoas * 0.5)
-    pessoas_50 = random.sample(pessoas, percentual_50)
+    cpfs_selecionados = random.sample(cpfs_internos, percentual_50)
 
-    reservas = []
+    reservas_data = []
     reservas_existentes = set()  # Tuplas (id_instalacao, data_reserva, horario_inicio)
 
     # Gerar reservas sem duplicar a chave única
-    for pessoa in pessoas_50:
-        cpf_responsavel = pessoa[0]
+    for cpf_responsavel in cpfs_selecionados:
         tentativas = 0
         while tentativas < 10:  # Evitar loop infinito
-            id_instalacao = random.choice(instalacoes)[0]
+            id_instalacao = random.choice(ids_instalacoes)
             data_reserva = gerar_data_reserva()
             horario_inicio, horario_fim = gerar_horarios_reserva()
             chave = (id_instalacao, data_reserva, horario_inicio)
 
             if chave not in reservas_existentes:
                 reservas_existentes.add(chave)
-                reservas.append([id_instalacao, cpf_responsavel, data_reserva, horario_inicio, horario_fim])
+                reservas_data.append((id_instalacao, cpf_responsavel, data_reserva, horario_inicio, horario_fim))
                 break
             tentativas += 1
 
-    # Gerar arquivo SQL
-    with open(nome_arquivo_sql_reservas, 'w', encoding='utf-8') as sql_file:
-        for reserva in reservas:
-            insert_sql = (
-                "INSERT INTO RESERVA (ID_INSTALACAO, CPF_RESPONSAVEL_INTERNO, DATA_RESERVA, HORARIO_INICIO, HORARIO_FIM) "
-                f"VALUES ('{reserva[0]}', '{reserva[1]}', '{reserva[2]}', '{reserva[3]}', '{reserva[4]}');\n"
-            )
-            sql_file.write(insert_sql)
+    # Inserir diretamente no banco
+    query = """
+        INSERT INTO RESERVA (ID_INSTALACAO, CPF_RESPONSAVEL_INTERNO, DATA_RESERVA, HORARIO_INICIO, HORARIO_FIM)
+        VALUES (%s, %s, %s, %s, %s)
+    """
 
-    # Gerar arquivo CSV
-    with open(nome_arquivo_csv_reservas, 'w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['ID_INSTALACAO', 'CPF_RESPONSAVEL_INTERNO', 'DATA_RESERVA', 'HORARIO_INICIO', 'HORARIO_FIM'])
-        writer.writerows(reservas)
+    print(f"Inserindo {len(reservas_data)} reservas no banco...")
+    dbsession.executemany(query, reservas_data)
+    print(f"✅ {len(reservas_data)} reservas inseridas com sucesso!")
 
-    print(f"Arquivo SQL de reservas gerado: {nome_arquivo_sql_reservas}")
-    print(f"Arquivo CSV de reservas gerado: {nome_arquivo_csv_reservas}")
-
-# Executa o gerador
-gerar_reservas('pessoas_internas.csv', 'instalacoes.csv', 'upgrade_reserva.sql', 'reservas.csv')
+if __name__ == "__main__":
+    dbsession = DBSession()
+    try:
+        gerar_reservas(dbsession)
+    finally:
+        dbsession.close()

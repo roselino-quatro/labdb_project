@@ -1,6 +1,10 @@
-import csv
 import random
+import sys
 from datetime import datetime, timedelta
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from dbsession import DBSession
 
 def gerar_data_reserva():
     start_date = datetime(2023, 1, 1)
@@ -15,73 +19,61 @@ def gerar_horarios_reserva():
     hora = random.randint(start_hour, end_hour - 1)
     minuto = random.choice([0, 30])
     horario_inicio = datetime.strptime(f"{hora:02d}:{minuto:02d}", "%H:%M")
-    
+
     # Reservas de equipamento costumam ser mais curtas
-    duracao = random.choice([60, 120]) 
+    duracao = random.choice([60, 120])
     horario_fim = horario_inicio + timedelta(minutes=duracao)
-    
+
     return horario_inicio.time(), horario_fim.time()
 
-def gerar_reservas_equipamento(arquivo_internos, arquivo_equipamentos, arquivo_sql, arquivo_csv):
-    # Carregar Pessoas
-    with open(arquivo_internos, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        next(reader)
-        pessoas = list(reader)
+def gerar_reservas_equipamento(dbsession):
+    # Buscar pessoas internas do banco
+    internos_result = dbsession.fetch_all("SELECT CPF_PESSOA FROM INTERNO_USP ORDER BY CPF_PESSOA")
+    cpfs_internos = [row['cpf_pessoa'] for row in internos_result]
 
-    # Carregar Equipamentos e FILTRAR apenas os reserváveis
-    with open(arquivo_equipamentos, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        next(reader) # Pula cabeçalho
-        equipamentos_reservaveis = [row for row in reader if row[5] == 'S']
+    # Buscar equipamentos reserváveis do banco
+    equipamentos_result = dbsession.fetch_all("SELECT ID_PATRIMONIO FROM EQUIPAMENTO WHERE EH_RESERVAVEL = 'S' ORDER BY ID_PATRIMONIO")
+    ids_equipamentos = [row['id_patrimonio'] for row in equipamentos_result]
 
-    if not equipamentos_reservaveis:
-        print("ERRO: Nenhum equipamento reservável encontrado no CSV.")
+    if not ids_equipamentos:
+        print("ERRO: Nenhum equipamento reservável encontrado no banco.")
         return
 
-    reservas = []
+    reservas_data = []
     reservas_check = set()
 
     # Gerar cerca de 500 reservas fictícias
     for _ in range(500):
-        pessoa = random.choice(pessoas)
-        cpf_responsavel = pessoa[0]
-        
-        equipamento = random.choice(equipamentos_reservaveis)
-        id_equipamento = equipamento[0]
-        
+        cpf_responsavel = random.choice(cpfs_internos)
+        id_equipamento = random.choice(ids_equipamentos)
+
         tentativas = 0
         while tentativas < 5:
             data_reserva = gerar_data_reserva()
             h_inicio, h_fim = gerar_horarios_reserva()
-            
+
             # Chave única simplificada para evitar colisões no gerador
             chave = (id_equipamento, data_reserva, h_inicio)
-            
+
             if chave not in reservas_check:
                 reservas_check.add(chave)
-                reservas.append([id_equipamento, cpf_responsavel, data_reserva, h_inicio, h_fim])
+                reservas_data.append((id_equipamento, cpf_responsavel, data_reserva, h_inicio, h_fim))
                 break
             tentativas += 1
 
-    # Gerar SQL
-    with open(arquivo_sql, 'w', encoding='utf-8') as sql_file:
-        for r in reservas:
-            # Observação: Não passamos o ID da reserva, pois é SERIAL/IDENTITY
-            insert_sql = (
-                "INSERT INTO RESERVA_EQUIPAMENTO (ID_EQUIPAMENTO, CPF_RESPONSAVEL_INTERNO, DATA_RESERVA, HORARIO_INICIO, HORARIO_FIM) "
-                f"VALUES ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}');\n"
-            )
-            sql_file.write(insert_sql)
+    # Inserir diretamente no banco
+    query = """
+        INSERT INTO RESERVA_EQUIPAMENTO (ID_EQUIPAMENTO, CPF_RESPONSAVEL_INTERNO, DATA_RESERVA, HORARIO_INICIO, HORARIO_FIM)
+        VALUES (%s, %s, %s, %s, %s)
+    """
 
-    # Gerar CSV
-    with open(arquivo_csv, 'w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['ID_EQUIPAMENTO', 'CPF_RESPONSAVEL_INTERNO', 'DATA_RESERVA', 'HORARIO_INICIO', 'HORARIO_FIM'])
-        writer.writerows(reservas)
-
-    print(f"Arquivo SQL de reservas de equipamento gerado: {arquivo_sql}")
-    print(f"Arquivo CSV de reservas de equipamento gerado: {arquivo_csv}")
+    print(f"Inserindo {len(reservas_data)} reservas de equipamento no banco...")
+    dbsession.executemany(query, reservas_data)
+    print(f"✅ {len(reservas_data)} reservas de equipamento inseridas com sucesso!")
 
 if __name__ == "__main__":
-    gerar_reservas_equipamento('pessoas_internas.csv', 'equipamentos.csv', 'upgrade_reserva_equipamento.sql', 'reservas_equipamento.csv')
+    dbsession = DBSession()
+    try:
+        gerar_reservas_equipamento(dbsession)
+    finally:
+        dbsession.close()

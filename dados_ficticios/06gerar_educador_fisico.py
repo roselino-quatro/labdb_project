@@ -1,45 +1,46 @@
-import csv
 import random
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from dbsession import DBSession
 
 # Função para gerar um número de conselho aleatório
 def gerar_numero_conselho():
     return f"CREF {random.randint(100000, 999999)}-{random.choice(['G', 'M', 'X', 'P', 'T', 'Q', 'R', 'S', 'U', 'V'])}"
 
 # Função para gerar os dados de educador físico para 10% dos funcionários
-def gerar_educadores_fisicos(nome_arquivo_csv_funcionario, nome_arquivo_sql_educador, nome_arquivo_csv_educador):
-    with open(nome_arquivo_csv_funcionario, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        header = next(reader)  # Pega o cabeçalho
-        funcionarios = list(reader)
+def gerar_educadores_fisicos(dbsession):
+    # Buscar todos os funcionários do banco
+    funcionarios_result = dbsession.fetch_all("SELECT CPF_INTERNO FROM FUNCIONARIO ORDER BY CPF_INTERNO")
+    cpfs_funcionarios = [row['cpf_interno'] for row in funcionarios_result]
 
     # Calcular 10% dos funcionários
-    total_funcionarios = len(funcionarios)
+    total_funcionarios = len(cpfs_funcionarios)
     percentual_10 = int(total_funcionarios * 0.1)
 
     # Selecionar aleatoriamente 10% dos funcionários
-    funcionarios_10 = random.sample(funcionarios, percentual_10)
+    cpfs_selecionados = random.sample(cpfs_funcionarios, percentual_10)
 
     # Montar os dados para o educador físico
-    educadores = []
-    for row in funcionarios_10:
-        cpf_funcionario = row[0]
+    educadores_data = []
+    for cpf_funcionario in cpfs_selecionados:
         numero_conselho = gerar_numero_conselho()
-        educadores.append([cpf_funcionario, numero_conselho])
+        educadores_data.append((cpf_funcionario, numero_conselho))
 
-    # Salvar arquivo CSV com os dados dos educadores físicos
-    with open(nome_arquivo_csv_educador, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['CPF_FUNCIONARIO', 'NUMERO_CONSELHO'])  # Cabeçalho
-        writer.writerows(educadores)
+    # Inserir diretamente no banco
+    query = """
+        INSERT INTO EDUCADOR_FISICO (CPF_FUNCIONARIO, NUMERO_CONSELHO)
+        VALUES (%s, %s)
+    """
 
-    # Salvar arquivo SQL com comandos INSERT
-    with open(nome_arquivo_sql_educador, mode='w', encoding='utf-8') as sql_file:
-        for cpf_funcionario, numero_conselho in educadores:
-            insert_sql = f"INSERT INTO EDUCADOR_FISICO (CPF_FUNCIONARIO, NUMERO_CONSELHO) VALUES ('{cpf_funcionario}', '{numero_conselho}');\n"
-            sql_file.write(insert_sql)
+    print(f"Inserindo {len(educadores_data)} educadores físicos no banco...")
+    dbsession.executemany(query, educadores_data)
+    print(f"✅ {len(educadores_data)} educadores físicos inseridos com sucesso!")
 
-    print(f"Arquivo SQL de educadores físicos gerado: {nome_arquivo_sql_educador}")
-    print(f"Arquivo CSV de educadores físicos gerado: {nome_arquivo_csv_educador}")
-
-# Executa o gerador
-gerar_educadores_fisicos('funcionarios.csv', 'upgrade_educador_fisico.sql', 'educador_fisico.csv')
+if __name__ == "__main__":
+    dbsession = DBSession()
+    try:
+        gerar_educadores_fisicos(dbsession)
+    finally:
+        dbsession.close()

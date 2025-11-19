@@ -1,5 +1,9 @@
-import csv
 import random
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from dbsession import DBSession
 
 # Função para gerar uma formação aleatória (exemplo)
 def gerar_formacao():
@@ -7,46 +11,40 @@ def gerar_formacao():
     return random.choice(formacoes)
 
 # Função para separar 20% dos dados dos 90% já processados
-def separar_20_porcento(arquivo_pessoas_internas, inserts_funcionarios, arquivo_funcionarios):
-    with open(arquivo_pessoas_internas, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        header = next(reader)  # Ignora o cabeçalho
-        pessoas_90 = list(reader)
+def gerar_funcionarios(dbsession):
+    # Buscar todos os internos do banco
+    internos_result = dbsession.fetch_all("SELECT CPF_PESSOA FROM INTERNO_USP ORDER BY CPF_PESSOA")
+    cpfs_internos = [row['cpf_pessoa'] for row in internos_result]
 
     # Embaralhar os dados para garantir aleatoriedade
-    random.shuffle(pessoas_90)
+    random.shuffle(cpfs_internos)
 
     # Calcular a quantidade de 20% dos dados dos 90%
-    total_pessoas_90 = len(pessoas_90)
-    percentual_20 = int(total_pessoas_90 * 0.2)
+    total_internos = len(cpfs_internos)
+    percentual_20 = int(total_internos * 0.2)
 
     # Separar os 20% dos dados
-    pessoas_20 = pessoas_90[:percentual_20]
+    cpfs_funcionarios = cpfs_internos[:percentual_20]
 
-    # Função para salvar os dados no arquivo SQL
-    def salvar_no_sql(pessoas_20):
-        with open(inserts_funcionarios, mode='w', encoding='utf-8') as sql_file:
-            for row in pessoas_20:
-                cpf_pessoa = row[0]
-                formacao = gerar_formacao()
+    # Preparar dados para inserção no banco
+    funcionarios_data = []
+    for cpf_pessoa in cpfs_funcionarios:
+        formacao = gerar_formacao()
+        funcionarios_data.append((cpf_pessoa, formacao))
 
-                # Gerar o comando SQL de inserção para a tabela FUNCIONARIO
-                insert_sql = f"INSERT INTO FUNCIONARIO (CPF_INTERNO, FORMACAO) VALUES ('{cpf_pessoa}', '{formacao}');\n"
-                sql_file.write(insert_sql)  # Escrever o comando no arquivo .sql
+    # Inserir diretamente no banco
+    query = """
+        INSERT INTO FUNCIONARIO (CPF_INTERNO, FORMACAO)
+        VALUES (%s, %s)
+    """
 
-    # Função para salvar os dados no arquivo CSV
-    def salvar_no_csv(pessoas_20, nome_arquivo_csv):
-        with open(nome_arquivo_csv, mode='w', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            writer.writerow(header)  # Escrever o cabeçalho
-            writer.writerows(pessoas_20)  # Escrever os dados no arquivo CSV
+    print(f"Inserindo {len(funcionarios_data)} funcionários no banco...")
+    dbsession.executemany(query, funcionarios_data)
+    print(f"✅ {len(funcionarios_data)} funcionários inseridos com sucesso!")
 
-    # Salvar os dados nos respectivos arquivos
-    salvar_no_sql(pessoas_20)
-    salvar_no_csv(pessoas_20, arquivo_funcionarios)
-
-    print(f"Arquivo SQL gerado: {inserts_funcionarios}")
-    print(f"Arquivo CSV dos 20% gerado: {arquivo_funcionarios}")
-
-# Gerar os arquivos para os 20% dos dados dos 90%
-separar_20_porcento('pessoas_internas.csv', 'upgrade_funcionario.sql', 'funcionarios.csv')
+if __name__ == "__main__":
+    dbsession = DBSession()
+    try:
+        gerar_funcionarios(dbsession)
+    finally:
+        dbsession.close()

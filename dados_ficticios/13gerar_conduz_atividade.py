@@ -1,42 +1,41 @@
 import random
-import csv
+import sys
+from pathlib import Path
 
-# Gerar CONDUZ_ATIVIDADE a partir de CSV de atividades e educadores físicos
-def gerar_conduz_atividade(nome_arquivo_sql, nome_arquivo_csv, nome_arquivo_csv_educador, nome_arquivo_csv_atividades):
-    # Ler educadores físicos
-    with open(nome_arquivo_csv_educador, 'r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        next(reader)  # pular cabeçalho
-        educadores = [row[0] for row in reader]  # CPF
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from dbsession import DBSession
 
-    # Ler atividades com IDs
-    with open(nome_arquivo_csv_atividades, 'r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        next(reader)  # pular cabeçalho
-        atividades = [int(row[0]) for row in reader]  # apenas IDs
+# Gerar CONDUZ_ATIVIDADE a partir do banco
+def gerar_conduz_atividade(dbsession):
+    # Buscar educadores físicos do banco
+    educadores_result = dbsession.fetch_all("SELECT CPF_FUNCIONARIO FROM EDUCADOR_FISICO ORDER BY CPF_FUNCIONARIO")
+    educadores = [row['cpf_funcionario'] for row in educadores_result]
 
-    conduzir = []
+    # Buscar atividades com IDs do banco
+    atividades_result = dbsession.fetch_all("SELECT ID_ATIVIDADE FROM ATIVIDADE ORDER BY ID_ATIVIDADE")
+    atividades = [row['id_atividade'] for row in atividades_result]
+
+    conduzir_data = []
 
     for educador in educadores:
-        num_atividades = random.randint(1, 5)
+        num_atividades = random.randint(1, min(5, len(atividades)))
         atividades_selecionadas = random.sample(atividades, num_atividades)
         for atividade_id in atividades_selecionadas:
-            conduzir.append([educador, atividade_id])
+            conduzir_data.append((educador, atividade_id))
 
-    # SQL
-    with open(nome_arquivo_sql, 'w', encoding='utf-8') as sql_file:
-        for educador, atividade_id in conduzir:
-            insert_sql = f"INSERT INTO CONDUZ_ATIVIDADE (CPF_EDUCADOR_FISICO, ID_ATIVIDADE) VALUES ('{educador}', {atividade_id});\n"
-            sql_file.write(insert_sql)
+    # Inserir diretamente no banco
+    query = """
+        INSERT INTO CONDUZ_ATIVIDADE (CPF_EDUCADOR_FISICO, ID_ATIVIDADE)
+        VALUES (%s, %s)
+    """
 
-    # CSV
-    with open(nome_arquivo_csv, 'w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['CPF_EDUCADOR_FISICO', 'ID_ATIVIDADE'])
-        writer.writerows(conduzir)
+    print(f"Inserindo {len(conduzir_data)} registros de CONDUZ_ATIVIDADE no banco...")
+    dbsession.executemany(query, conduzir_data)
+    print(f"✅ {len(conduzir_data)} registros inseridos com sucesso!")
 
-    print(f"Arquivo SQL de CONDUZ_ATIVIDADE gerado: {nome_arquivo_sql}")
-    print(f"Arquivo CSV de CONDUZ_ATIVIDADE gerado: {nome_arquivo_csv}")
-
-# Executa o gerador
-gerar_conduz_atividade('upgrade_conduz_atividade.sql', 'conduz_atividade.csv', 'educador_fisico.csv', 'atividades.csv')
+if __name__ == "__main__":
+    dbsession = DBSession()
+    try:
+        gerar_conduz_atividade(dbsession)
+    finally:
+        dbsession.close()

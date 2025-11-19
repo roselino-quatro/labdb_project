@@ -1,6 +1,10 @@
-import csv
 from faker import Faker
 import random
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from dbsession import DBSession
 
 # Função para gerar CPF válido
 def gerar_cpf():
@@ -23,42 +27,47 @@ def gerar_cpf():
 # Inicializa Faker
 fake = Faker('pt_BR')
 
-def gerar_csv_e_sql(nome_arquivo_csv, nome_arquivo_sql, quantidade):
+def gerar_pessoas(dbsession, quantidade):
     cpfs_gerados = set()  # Garante CPFs únicos
     emails_usados = set()  # Garante emails únicos
 
-    with open(nome_arquivo_csv, 'w', newline='', encoding='utf-8') as file_csv, \
-         open(nome_arquivo_sql, 'w', encoding='utf-8') as file_sql:
-        
-        writer_csv = csv.writer(file_csv)
-        writer_csv.writerow(['CPF', 'NOME', 'EMAIL', 'CELULAR', 'DATA_NASCIMENTO'])
+    pessoas_data = []
 
-        for _ in range(quantidade):
-            # Gera CPF único
+    print(f"Gerando {quantidade} pessoas...")
+
+    for _ in range(quantidade):
+        # Gera CPF único
+        cpf = gerar_cpf()
+        while cpf in cpfs_gerados:
             cpf = gerar_cpf()
-            while cpf in cpfs_gerados:
-                cpf = gerar_cpf()
-            cpfs_gerados.add(cpf)
+        cpfs_gerados.add(cpf)
 
-            nome = fake.name()
+        nome = fake.name()
 
-            # Gera email único
+        # Gera email único
+        email = fake.email()
+        while email in emails_usados:
             email = fake.email()
-            while email in emails_usados:
-                email = fake.email()
-            emails_usados.add(email)
+        emails_usados.add(email)
 
-            celular = f"(11) 9{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
-            data_nascimento = fake.date_of_birth(minimum_age=18, maximum_age=80)
+        celular = f"(11) 9{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
+        data_nascimento = fake.date_of_birth(minimum_age=18, maximum_age=80)
 
-            writer_csv.writerow([cpf, nome, email, celular, data_nascimento])
+        pessoas_data.append((cpf, nome, email, celular, data_nascimento))
 
-            insert_sql = f"INSERT INTO PESSOA (CPF, NOME, EMAIL, CELULAR, DATA_NASCIMENTO) " \
-                         f"VALUES ('{cpf}', '{nome.replace('\'','\'\'')}', '{email}', '{celular}', '{data_nascimento}');\n"
-            file_sql.write(insert_sql)
+    # Inserir diretamente no banco usando executemany
+    query = """
+        INSERT INTO PESSOA (CPF, NOME, EMAIL, CELULAR, DATA_NASCIMENTO)
+        VALUES (%s, %s, %s, %s, %s)
+    """
 
-    print(f"CSV gerado com sucesso em: {nome_arquivo_csv}")
-    print(f"SQL gerado com sucesso em: {nome_arquivo_sql}")
+    print(f"Inserindo {len(pessoas_data)} pessoas no banco...")
+    dbsession.executemany(query, pessoas_data)
+    print(f"✅ {len(pessoas_data)} pessoas inseridas com sucesso!")
 
-# Gerar os arquivos CSV e SQL com 10.000 pessoas
-gerar_csv_e_sql('pessoas.csv', 'upgrade_pessoa.sql', 10000)
+if __name__ == "__main__":
+    dbsession = DBSession()
+    try:
+        gerar_pessoas(dbsession, 10000)
+    finally:
+        dbsession.close()

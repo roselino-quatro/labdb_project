@@ -1,27 +1,31 @@
-import csv
 import random
+import sys
 from datetime import datetime, timedelta
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from dbsession import DBSession
 
 # Listas separadas logicamente
 ITENS_RESERVAVEIS = [
     # Treinamento Funcional
-    "Corda de Pular", "Kettlebell", "Slamball", "Medicine Ball", "Cordas de Batalha", 
+    "Corda de Pular", "Kettlebell", "Slamball", "Medicine Ball", "Cordas de Batalha",
     "Caixa Pliométrica", "Cone de Agilidade", "Bolsa de Areia", "Ball Slam", "Bola de Pilates",
 
     # Esportes Coletivos
-    "Bola de Futebol", "Bola de Vôlei", "Bola de Basquete", "Rede de Vôlei", "Cesta de Basquete", 
+    "Bola de Futebol", "Bola de Vôlei", "Bola de Basquete", "Rede de Vôlei", "Cesta de Basquete",
     "Trave de Futebol", "Goalball", "Mini Quadra de Futsal", "Bola de Handebol", "Bola de Rugby",
 
     # Esportes Individuais
-    "Raquete de Tênis", "Raquete de Badminton", "Raquete de Ping-Pong", "Bola de Golfe", "Taco de Beisebol", 
+    "Raquete de Tênis", "Raquete de Badminton", "Raquete de Ping-Pong", "Bola de Golfe", "Taco de Beisebol",
     "Arco e Flecha", "Skateboard", "Bola de Skate", "Prancha de Surfe", "Bola de Tênis",
 
     # Yoga e Pilates
-    "Tapete de Yoga", "Almofada de Meditação", "Faixa de Resistência", "Bola de Pilates", 
+    "Tapete de Yoga", "Almofada de Meditação", "Faixa de Resistência", "Bola de Pilates",
     "Rolo de Espuma", "Peso de Mão para Yoga", "Almofada de Descanso", "Rolo de Alta Performance",
-    
+
     # Equipamentos Aquáticos
-    "Prancha de Surfe", "Palmar de Natação", "Nadadeiras", "Bolha para Hidroginástica", 
+    "Prancha de Surfe", "Palmar de Natação", "Nadadeiras", "Bolha para Hidroginástica",
     "Boia de Natação", "Prancha de Stand-Up Paddle", "Cinto de Flutuação", "Máscara de Mergulho"
 ]
 
@@ -29,7 +33,7 @@ ITENS_NAO_RESERVAVEIS = [
      # Musculação
     "Halter de 5kg", "Halter de 10kg", "Barras Olímpicas", "Banco de Musculação", "Anilha de 5kg",
     "Anilha de 10kg", "Peso para Tornozelo", "Rack para Agachamento", "Leg Press", "Máquina de Abdominal",
-    
+
     # Outros Equipamentos
     "Bicicleta Ergométrica", "Elíptico", "Colchonete de Exercício", "Barra de Apoio", "Rolo de Alta Performance",
     "Colchonete de Pilates", "Cordas de Escada", "Protetores de Tornozelo", "Bola de Basquete de Rua"
@@ -55,32 +59,29 @@ def gerar_data_aquisicao():
     random_days = random.randint(0, delta.days)
     return (start_date + timedelta(days=random_days)).date()
 
-def gerar_equipamentos(nome_arquivo_csv_instalacao, nome_arquivo_sql_equipamento, nome_arquivo_csv_equipamento):
-    # Ler as instalações do arquivo CSV
-    with open(nome_arquivo_csv_instalacao, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        next(reader)
-        instalacoes = list(reader)
+def gerar_equipamentos(dbsession):
+    # Buscar as instalações do banco
+    instalacoes_result = dbsession.fetch_all("SELECT ID_INSTALACAO, NOME, TIPO FROM INSTALACAO ORDER BY ID_INSTALACAO")
 
     # Classificar as instalações para saber onde guardar as coisas
     locais_academia = []
     locais_deposito = []
     todos_locais = []
 
-    for inst in instalacoes:
-        id_inst = int(inst[0])
-        nome = inst[1].upper()
-        tipo = inst[2].upper()
+    for inst in instalacoes_result:
+        id_inst = inst['id_instalacao']
+        nome = inst['nome'].upper()
+        tipo = inst['tipo'].upper()
         todos_locais.append(id_inst)
-        
+
         # Regra para Academia
         if 'ACADEMIA' in tipo or 'MUSCULAÇÃO' in nome or 'MUSCULACAO' in nome:
             locais_academia.append(id_inst)
-        
+
         # Regra para Depósito
         if 'DEPÓSITO' in nome or 'DEPOSITO' in nome or 'SALA' in tipo:
             locais_deposito.append(id_inst)
-    
+
     # Fallbacks de segurança (caso não encontre nenhum específico, usa qualquer um para não quebrar)
     if not locais_academia:
         print("AVISO: Nenhuma instalação do tipo 'Academia' encontrada. Usando locais aleatórios.")
@@ -89,12 +90,12 @@ def gerar_equipamentos(nome_arquivo_csv_instalacao, nome_arquivo_sql_equipamento
         print("AVISO: Nenhuma instalação do tipo 'Sala' ou 'Depósito' encontrada. Usando locais aleatórios.")
         locais_deposito = todos_locais
 
-    equipamentos = []
+    equipamentos_data = []
     ids_gerados = set()
 
     for _ in range(200):
         id_patrimonio = gerar_id_patrimonio(ids_gerados)
-        
+
         if random.choice([True, False]):
             # Caso: Item NÃO RESERVÁVEL (Academia)
             nome_equipamento = random.choice(ITENS_NAO_RESERVAVEIS)
@@ -111,24 +112,21 @@ def gerar_equipamentos(nome_arquivo_csv_instalacao, nome_arquivo_sql_equipamento
         preco_aquisicao = gerar_preco_aquisicao(eh_reservavel)
         data_aquisicao = gerar_data_aquisicao()
 
-        equipamentos.append([id_patrimonio, nome_equipamento, id_instalacao_local, preco_aquisicao, data_aquisicao, eh_reservavel])
+        equipamentos_data.append((id_patrimonio, nome_equipamento, id_instalacao_local, preco_aquisicao, data_aquisicao, eh_reservavel))
 
-    # Gerar o arquivo SQL
-    with open(nome_arquivo_sql_equipamento, 'w', encoding='utf-8') as sql_file:
-        for eq in equipamentos:
-            insert_sql = f"INSERT INTO EQUIPAMENTO (ID_PATRIMONIO, NOME, ID_INSTALACAO_LOCAL, PRECO_AQUISICAO, DATA_AQUISICAO, EH_RESERVAVEL) " \
-                         f"VALUES ('{eq[0]}', '{eq[1]}', '{eq[2]}', {eq[3]}, '{eq[4]}', '{eq[5]}');\n"
-            sql_file.write(insert_sql)
+    # Inserir diretamente no banco
+    query = """
+        INSERT INTO EQUIPAMENTO (ID_PATRIMONIO, NOME, ID_INSTALACAO_LOCAL, PRECO_AQUISICAO, DATA_AQUISICAO, EH_RESERVAVEL)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """
 
-    # Gerar o arquivo CSV
-    with open(nome_arquivo_csv_equipamento, 'w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['ID_PATRIMONIO', 'NOME', 'ID_INSTALACAO_LOCAL', 'PRECO_AQUISICAO', 'DATA_AQUISICAO', 'EH_RESERVAVEL'])
-        writer.writerows(equipamentos)
+    print(f"Inserindo {len(equipamentos_data)} equipamentos no banco...")
+    dbsession.executemany(query, equipamentos_data)
+    print(f"✅ {len(equipamentos_data)} equipamentos inseridos com sucesso!")
 
-    print(f"Arquivo SQL de equipamentos gerado: {nome_arquivo_sql_equipamento}")
-    print(f"Arquivo CSV de equipamentos gerado: {nome_arquivo_csv_equipamento}")
-
-# Executa o gerador
 if __name__ == "__main__":
-    gerar_equipamentos('instalacoes.csv', 'upgrade_equipamento.sql', 'equipamentos.csv')
+    dbsession = DBSession()
+    try:
+        gerar_equipamentos(dbsession)
+    finally:
+        dbsession.close()

@@ -1,88 +1,60 @@
-import csv
 import random
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from dbsession import DBSession
 
 # Lista fixa de nomes de grupos de extensão
 NOMES_GRUPOS_EXTENSAO = [
-    'Grupo de Karatê Shotokan', 
-    'Equipe Kung Fu Garra de Águia', 
-    'Grupo de Estudos Tai Chi Chuan', 
+    'Grupo de Karatê Shotokan',
+    'Equipe Kung Fu Garra de Águia',
+    'Grupo de Estudos Tai Chi Chuan',
     'Projeto Capoeira Angola'
 ]
 
-def gerar_grupos_extensao(
-    nome_arquivo_internos,
-    nome_arquivo_sql,
-    nome_arquivo_csv,
-    quantidade_grupos=4
-):
+def gerar_grupos_extensao(dbsession, quantidade_grupos=4):
     """
     Gera dados fictícios para GRUPO_EXTENSAO com base em nomes fixos
-    e salva em arquivos SQL e CSV.
+    e insere diretamente no banco.
     """
 
-    # 1. Ler CPFs dos internos
-    cpfs_internos = []
-    try:
-        with open(nome_arquivo_internos, mode='r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            header = next(reader)  # Lê o cabeçalho
-            try:
-                idx_cpf = header.index('CPF')  # Detecta a coluna do CPF
-            except ValueError:
-                print("Erro: Cabeçalho 'CPF' não encontrado no arquivo de internos.")
-                return
-            for row in reader:
-                if len(row) > idx_cpf:
-                    cpfs_internos.append(row[idx_cpf])
-        if not cpfs_internos:
-            print("Aviso: Nenhum CPF de interno encontrado.")
-            return
-    except FileNotFoundError:
-        print(f"Erro: Arquivo {nome_arquivo_internos} não encontrado.")
+    # Buscar CPFs dos internos do banco
+    internos_result = dbsession.fetch_all("SELECT CPF_PESSOA FROM INTERNO_USP ORDER BY CPF_PESSOA")
+    cpfs_internos = [row['cpf_pessoa'] for row in internos_result]
+
+    if not cpfs_internos:
+        print("Aviso: Nenhum interno encontrado no banco.")
         return
 
-    # 2. Definir quantos grupos gerar
+    # Definir quantos grupos gerar
     num_a_selecionar = min(quantidade_grupos, len(NOMES_GRUPOS_EXTENSAO))
     if quantidade_grupos > len(NOMES_GRUPOS_EXTENSAO):
         print(f"Aviso: Solicitados {quantidade_grupos} grupos, mas só existem {len(NOMES_GRUPOS_EXTENSAO)} nomes disponíveis.")
-    
+
     nomes_selecionados = random.sample(NOMES_GRUPOS_EXTENSAO, num_a_selecionar)
 
-    # 3. Gerar os dados dos grupos
-    grupos = []
+    # Gerar os dados dos grupos
+    grupos_data = []
     for nome in nomes_selecionados:
         descricao = f"{nome} é um grupo de extensão promovido pelo CEFER."
         cpf_responsavel = random.choice(cpfs_internos)
-        grupos.append([nome, descricao, cpf_responsavel])
+        grupos_data.append((nome, descricao, cpf_responsavel))
 
-    # 4. Criar arquivo SQL
-    with open(nome_arquivo_sql, mode='w', encoding='utf-8') as sql_file:
-        for grupo in grupos:
-            nome_sql = grupo[0].replace("'", "''")
-            descricao_sql = grupo[1].replace("'", "''")
-            cpf = grupo[2]
-            insert_sql = (
-                f"INSERT INTO GRUPO_EXTENSAO (NOME_GRUPO, DESCRICAO, CPF_RESPONSAVEL_INTERNO) "
-                f"VALUES ('{nome_sql}', '{descricao_sql}', '{cpf}');\n"
-            )
-            sql_file.write(insert_sql)
+    # Inserir diretamente no banco
+    query = """
+        INSERT INTO GRUPO_EXTENSAO (NOME_GRUPO, DESCRICAO, CPF_RESPONSAVEL_INTERNO)
+        VALUES (%s, %s, %s)
+    """
 
-    # 5. Criar arquivo CSV
-    with open(nome_arquivo_csv, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['NOME_GRUPO', 'DESCRICAO', 'CPF_RESPONSAVEL_INTERNO'])
-        writer.writerows(grupos)
+    print(f"Inserindo {len(grupos_data)} grupos de extensão no banco...")
+    dbsession.executemany(query, grupos_data)
+    print(f"✅ {len(grupos_data)} grupos inseridos com sucesso!")
+    print(f"Total de grupos gerados: {len(grupos_data)}")
 
-    # 6. Mensagens de confirmação
-    print(f"Arquivo SQL de grupos gerado: {nome_arquivo_sql}")
-    print(f"Arquivo CSV de grupos gerado: {nome_arquivo_csv}")
-    print(f"Total de grupos gerados: {len(grupos)}")
-
-
-# Executa o gerador
-gerar_grupos_extensao(
-    nome_arquivo_internos='pessoas_internas.csv',
-    nome_arquivo_sql='upgrade_grupo_extensao.sql',
-    nome_arquivo_csv='grupos_extensao.csv',
-    quantidade_grupos=4  # Pode ajustar conforme quiser
-)
+if __name__ == "__main__":
+    dbsession = DBSession()
+    try:
+        gerar_grupos_extensao(dbsession, quantidade_grupos=4)
+    finally:
+        dbsession.close()

@@ -1,5 +1,9 @@
-import csv
 import random
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from dbsession import DBSession
 
 # Função para gerar um NUSP aleatório (exemplo)
 def gerar_nusp():
@@ -10,51 +14,42 @@ def gerar_categoria():
     categorias = ['ALUNO_GRADUACAO', 'ALUNO_MESTRADO', 'ALUNO_DOUTORADO', 'FUNCIONARIO']
     return random.choice(categorias)
 
-# Função para dividir os dados em 90% para o arquivo SQL e 10% para o arquivo CSV
-def dividir_dados(nome_arquivo_entrada, nome_arquivo_sql, nome_arquivo_csv_90, nome_arquivo_csv_10):
-    with open(nome_arquivo_entrada, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        header = next(reader)  # Ignora o cabeçalho
-        pessoas = list(reader)
+# Função para dividir os dados em 90% para internos e 10% para pessoas restantes
+def gerar_interno_usp(dbsession):
+    # Buscar todas as pessoas do banco
+    pessoas_result = dbsession.fetch_all("SELECT CPF FROM PESSOA ORDER BY CPF")
+    cpfs = [row['cpf'] for row in pessoas_result]
 
     # Embaralhar os dados para garantir a aleatoriedade
-    random.shuffle(pessoas)
+    random.shuffle(cpfs)
 
     # Calcular a quantidade para 90% e 10%
-    total_pessoas = len(pessoas)
+    total_pessoas = len(cpfs)
     percentual_90 = int(total_pessoas * 0.9)
-    
+
     # Separar os dados
-    pessoas_90 = pessoas[:percentual_90]
-    pessoas_10 = pessoas[percentual_90:]
+    cpfs_internos = cpfs[:percentual_90]
 
-    # Função para salvar os dados no arquivo SQL
-    def salvar_no_sql(pessoas_90):
-        with open(nome_arquivo_sql, mode='w', encoding='utf-8') as sql_file:
-            for row in pessoas_90:
-                cpf_pessoa = row[0]
-                nusp = gerar_nusp()
-                categoria = gerar_categoria()
+    # Preparar dados para inserção no banco
+    internos_data = []
+    for cpf_pessoa in cpfs_internos:
+        nusp = gerar_nusp()
+        categoria = gerar_categoria()
+        internos_data.append((cpf_pessoa, nusp, categoria))
 
-                # Gerar o comando SQL de inserção
-                insert_sql = f"INSERT INTO INTERNO_USP (CPF_PESSOA, NUSP, CATEGORIA) VALUES ('{cpf_pessoa}', '{nusp}', '{categoria}');\n"
-                sql_file.write(insert_sql)  # Escrever o comando no arquivo .sql
+    # Inserir diretamente no banco
+    query = """
+        INSERT INTO INTERNO_USP (CPF_PESSOA, NUSP, CATEGORIA)
+        VALUES (%s, %s, %s)
+    """
 
-    # Função para salvar os dados no arquivo CSV
-    def salvar_no_csv(pessoas, nome_arquivo_csv):
-        with open(nome_arquivo_csv, mode='w', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            writer.writerow(header)  # Escrever o cabeçalho
-            writer.writerows(pessoas)  # Escrever os dados no arquivo CSV
+    print(f"Inserindo {len(internos_data)} internos no banco...")
+    dbsession.executemany(query, internos_data)
+    print(f"✅ {len(internos_data)} internos inseridos com sucesso!")
 
-    # Salvar os dados nos respectivos arquivos
-    salvar_no_sql(pessoas_90)
-    salvar_no_csv(pessoas_90, nome_arquivo_csv_90)
-    salvar_no_csv(pessoas_10, nome_arquivo_csv_10)
-
-    print(f"Arquivo SQL gerado: {nome_arquivo_sql}")
-    print(f"Arquivo CSV dos 90% gerado: {nome_arquivo_csv_90}")
-    print(f"Arquivo CSV dos 10% gerado: {nome_arquivo_csv_10}")
-
-# Gerar os arquivos para os dados
-dividir_dados('pessoas.csv', 'upgrade_interno_usp.sql', 'pessoas_internas.csv', 'pessoas_restantes.csv')
+if __name__ == "__main__":
+    dbsession = DBSession()
+    try:
+        gerar_interno_usp(dbsession)
+    finally:
+        dbsession.close()
