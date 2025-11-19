@@ -1,8 +1,5 @@
 """
 Módulo de migrações - gerencia apenas upgrade e downgrade do schema.
-
-Para popular o banco com dados sintéticos, use populate_db.py.
-Para fazer downgrade de dados, use downgrade_db.py.
 """
 from dataclasses import dataclass
 from pathlib import Path
