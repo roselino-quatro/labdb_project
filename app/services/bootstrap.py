@@ -94,12 +94,45 @@ def _count_tables(db_session) -> int:
 def _apply_schema(db_session) -> None:
     current_app.logger.info("Applying schema from %s", SCHEMA_FILE)
     try:
-        # Ler e executar o arquivo SQL diretamente para ter melhor controle de erros
+        # Ler o arquivo SQL
         with open(SCHEMA_FILE, 'r', encoding='utf-8') as file:
             query = file.read()
 
+        # Verificar se o tipo DIA_SEMANA já existe antes de criar
         with db_session.connection.cursor() as cursor:
-            cursor.execute(query)
+            cursor.execute("""
+                SELECT COUNT(*) as count
+                FROM pg_type
+                WHERE typname = 'dia_semana'
+            """)
+            result = cursor.fetchone()
+            dia_semana_exists = result and result[0] > 0
+
+        # Modificar o SQL para usar CREATE TABLE IF NOT EXISTS
+        # Substituir CREATE TABLE por CREATE TABLE IF NOT EXISTS
+        modified_query = query.replace('CREATE TABLE ', 'CREATE TABLE IF NOT EXISTS ')
+
+        # Para CREATE TYPE, remover a linha se o tipo já existir
+        # PostgreSQL não suporta CREATE TYPE IF NOT EXISTS
+        if dia_semana_exists:
+            # Remover a criação do tipo DIA_SEMANA se já existir
+            lines = modified_query.split('\n')
+            new_lines = []
+            skip_type_creation = False
+            for line in lines:
+                if 'CREATE TYPE DIA_SEMANA' in line.upper():
+                    skip_type_creation = True
+                    continue
+                if skip_type_creation:
+                    # Continuar pulando até encontrar o fechamento do enum
+                    if line.strip() == ');':
+                        skip_type_creation = False
+                    continue
+                new_lines.append(line)
+            modified_query = '\n'.join(new_lines)
+
+        with db_session.connection.cursor() as cursor:
+            cursor.execute(modified_query)
         db_session.connection.commit()
 
         # Verificar se pelo menos a tabela PESSOA foi criada
