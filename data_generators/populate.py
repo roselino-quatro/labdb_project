@@ -72,6 +72,25 @@ def _apply_schema_safe(dbsession):
         raise
 
 
+def _apply_functions_and_triggers(dbsession):
+    """Aplica os arquivos de funções e triggers."""
+    file_names = [
+        "auth_functions.sql",
+        "admin_functions.sql",
+        "internal_functions.sql",
+        "staff_functions.sql",
+        "common_triggers.sql",
+    ]
+
+    sql_path = Path("./sql/funcionalidades")
+    for f in file_names:
+        print(f"Applying functions from {f}")
+        try:
+            dbsession.run_sql_file(str(sql_path / f))
+        except Exception as e:
+            print(f"Erro ao aplicar funções: {e}")
+
+
 def populate_db():
     """Cria o schema e popula o banco de dados com dados completos."""
     dbsession = DBSession()
@@ -85,6 +104,8 @@ def populate_db():
         try:
             _apply_schema_safe(dbsession)
             print("✅ Schema aplicado com sucesso!\n")
+            _apply_functions_and_triggers(dbsession)
+            print("✅ Funções aplicadas com sucesso!\n")
         except Exception as e:
             # Garantir que a transação foi revertida
             try:
