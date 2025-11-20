@@ -1,7 +1,8 @@
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
@@ -18,4 +19,4 @@ ENV FLASK_APP=wsgi.py \
     FLASK_ENV=development \
     FLASK_RUN_PORT=5050
 
-ENTRYPOINT ["python", "/app/docker_entrypoint.py"]
+ENTRYPOINT ["python", "docker/entrypoint.py"]

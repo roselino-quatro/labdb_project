@@ -1,8 +1,8 @@
 from flask import render_template, request
 
 from app.routes.staff import staff_blueprint
-from app.services import sql_queries
-from app.services.auth_decorators import require_role
+from app.services.database import executor as sql_queries
+from app.services.auth.decorators import require_role
 
 
 @staff_blueprint.get("/", endpoint="dashboard")

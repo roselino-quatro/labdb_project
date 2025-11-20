@@ -1,8 +1,8 @@
 import pytest
 from collections import OrderedDict
-from migrations import SchemaMigration
+from app.services.migrations import SchemaMigration
 from data_generators.data_generator import populate_database
-from app.services.database_downgrade import downgrade_database
+from app.services.database.downgrade import downgrade_database
 
 
 def count_table_records(cursor, table_name, schema='tests'):

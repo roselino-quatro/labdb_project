@@ -1,7 +1,7 @@
 from flask import Flask, g
 
-from dbsession import DBSession
-from app.services.bootstrap import ensure_schema_populated
+from app.database import DBSession
+from app.services.database.bootstrap import ensure_schema_populated
 
 
 def register_extensions(app: Flask) -> None:

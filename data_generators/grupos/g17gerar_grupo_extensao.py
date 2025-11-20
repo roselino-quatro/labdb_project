@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from dbsession import DBSession
+from app.database import DBSession
 
 # Lista fixa de nomes de grupos de extensão
 NOMES_GRUPOS_EXTENSAO = [

@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from dbsession import DBSession
+from app.database import DBSession
 
 # Função para gerar uma atribuição aleatória para o contexto de Educação Física, Esportes e Recreação
 def gerar_atribuicao():

@@ -61,7 +61,7 @@ pytest -s
    Execute o script de população que cria o schema e popula todas as tabelas:
 
    ```bash
-   python populate_db.py
+   ./scripts/populate_db.sh
    ```
 
    Esse comando aplicará as migrações de _schema_ e preencherá todas as tabelas do banco com dados sintéticos usando o sistema unificado de geração de dados.
@@ -72,7 +72,7 @@ pytest -s
    Caso queira desfazer a carga e remover os dados populados:
 
    ```bash
-   python downgrade_db.py
+   ./scripts/downgrade_db.sh
    ```
 
    Isso executará os scripts de _downgrade_ na ordem inversa, limpando todas as tabelas e o schema.

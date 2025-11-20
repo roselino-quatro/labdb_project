@@ -6,7 +6,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 import pytest
-from dbsession import DBSession
+from app.database import DBSession
 
 @pytest.fixture
 def dbsession():

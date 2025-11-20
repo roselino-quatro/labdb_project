@@ -7,7 +7,7 @@ from flask import current_app, g
 from psycopg2.extras import RealDictCursor
 
 
-DEFAULT_SQL_ROOT = Path(__file__).resolve().parents[2] / "sql"
+DEFAULT_SQL_ROOT = Path(__file__).resolve().parents[3] / "sql"
 
 
 class SQLExecutionError(RuntimeError):

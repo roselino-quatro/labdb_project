@@ -4,10 +4,10 @@ from pathlib import Path
 
 from flask import current_app
 
-from app.services import sql_queries
-from data_generators.data_generator import populate_database
+from app.services.database import executor
+from data_generators.populate import populate_db
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 SQL_ROOT = PROJECT_ROOT / "sql"
 SCHEMA_FILE = SQL_ROOT / "upgrade_schema.sql"
 FUNCTIONS_FILE = SQL_ROOT / "funcionalidades" / "upgrade_functions.sql"
@@ -73,7 +73,7 @@ def ensure_schema_populated(db_session) -> None:
 
 def _count_tables(db_session) -> int:
     try:
-        # Usar a conexão diretamente para evitar problemas com sql_queries
+        # Usar a conexão diretamente para evitar problemas com executor
         with db_session.connection.cursor() as cursor:
             cursor.execute("""
                 SELECT COUNT(*)
@@ -157,7 +157,7 @@ def _apply_sample_data(db_session) -> None:
     """Popula o banco com dados usando o sistema unificado."""
     current_app.logger.info("Populando banco com dados...")
     try:
-        populate_database(db_session)
+        populate_db()  # Usa a função importada de data_generators
         current_app.logger.info("Dados populados com sucesso")
     except Exception as e:
         current_app.logger.error(f"Erro ao popular dados: {e}", exc_info=True)

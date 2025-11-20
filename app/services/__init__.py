@@ -1,3 +1,3 @@
-from . import sql_queries
+from app.services.database import executor
 
-__all__ = ["sql_queries"]
+__all__ = ["executor"]

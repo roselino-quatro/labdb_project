@@ -2,11 +2,11 @@
 Módulo para fazer downgrade de dados do banco de dados.
 
 Gerencia apenas a remoção de dados, não o schema.
-Para downgrade do schema, use migrations.SchemaMigration.
+Para downgrade do schema, use app.services.migrations.SchemaMigration.
 """
 from pathlib import Path
-from dbsession import DBSession
-from migrations import SchemaMigration
+from app.database import DBSession
+from app.services.migrations import SchemaMigration
 
 
 def _table_exists(dbsession: DBSession, table_name: str) -> bool:

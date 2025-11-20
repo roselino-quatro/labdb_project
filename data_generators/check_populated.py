@@ -3,7 +3,7 @@ Script para verificar se o banco de dados já foi populado.
 Retorna 0 se já foi populado, 1 se não foi populado.
 """
 import sys
-from dbsession import DBSession
+from app.database import DBSession
 
 def is_db_populated():
     """Verifica se o banco já foi populado checando se a tabela PESSOA existe e tem dados."""

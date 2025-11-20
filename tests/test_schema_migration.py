@@ -1,6 +1,6 @@
 # test_schema.py
 import pytest
-from migrations import SchemaMigration
+from app.services.migrations import SchemaMigration
 
 TABLES = [
     "PESSOA",

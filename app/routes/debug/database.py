@@ -3,10 +3,10 @@ from pathlib import Path
 from flask import jsonify
 
 from app.routes.debug import debug_blueprint
-from dbsession import DBSession
-from migrations import SchemaMigration
-from populate_db import populate_db
-from app.services.database_downgrade import downgrade_database
+from app.database import DBSession
+from app.services.migrations import SchemaMigration
+from data_generators.populate import populate_db
+from app.services.database.downgrade import downgrade_database
 
 
 @debug_blueprint.post("/populate-db")

@@ -4,7 +4,7 @@ from datetime import time, timedelta, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from dbsession import DBSession
+from app.database import DBSession
 
 # Função para gerar um horário aleatório de início
 # (somente horas cheias ou meia hora, entre 08:00 e 18:00)

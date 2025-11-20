@@ -1,6 +1,6 @@
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
-from app.services import sql_queries
+from app.services.database import executor as sql_queries
 
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")

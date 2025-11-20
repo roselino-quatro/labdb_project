@@ -3,8 +3,8 @@ Script para fazer downgrade do banco de dados.
 
 Remove todos os dados e o schema.
 """
-from dbsession import DBSession
-from app.services.database_downgrade import downgrade_database_and_schema
+from app.database import DBSession
+from app.services.database.downgrade import downgrade_database_and_schema
 
 
 def downgrade_db():

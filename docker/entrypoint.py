@@ -9,13 +9,20 @@ import time
 import subprocess
 from pathlib import Path
 
+# Adiciona o diretório pai ao PYTHONPATH se não estiver presente
+# Garante que imports da raiz funcionem
+current_dir = Path(__file__).resolve().parent
+root_dir = current_dir.parent
+if str(root_dir) not in sys.path:
+    sys.path.append(str(root_dir))
+
 def wait_for_postgres(max_attempts=30):
     """Aguarda o PostgreSQL estar pronto para conexões."""
     print("Aguardando PostgreSQL estar pronto...")
 
     for attempt in range(max_attempts):
         try:
-            from dbsession import DBSession
+            from app.database import DBSession
             dbsession = DBSession()
             dbsession.close()
             print("PostgreSQL está pronto!")
@@ -34,7 +41,7 @@ def wait_for_postgres(max_attempts=30):
 def check_db_populated():
     """Verifica se o banco de dados já foi populado."""
     try:
-        from check_db_populated import is_db_populated
+        from data_generators.check_populated import is_db_populated
         return is_db_populated()
     except Exception as e:
         print(f"Erro ao verificar banco: {e}")
@@ -46,7 +53,7 @@ def populate_database():
     print("=== Iniciando população do banco de dados ===")
 
     try:
-        from populate_db import populate_db
+        from data_generators.populate import populate_db
         populate_db()
         print("=== População do banco concluída com sucesso! ===")
         return True
