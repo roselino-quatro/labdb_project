@@ -16,8 +16,8 @@ def gerar_usuario_senha(dbsession):
     Usa a função hash_password() do PostgreSQL para gerar hashes bcrypt.
     """
     # Buscar todos os internos USP
-    internos_result = dbsession.fetch_all("SELECT CPF_PESSOA FROM INTERNO_USP ORDER BY CPF_PESSOA")
-    cpfs_internos = [row['cpf_pessoa'] for row in internos_result]
+    internos_result = dbsession.fetch_all("SELECT CPF_PESSOA FROM INTERNO_USP")
+    cpfs_internos = [row["cpf_pessoa"] for row in internos_result]
 
     # Verificar se o usuário de teste tem senha
     pessoa_teste_result = dbsession.fetch_one(f"""
@@ -42,7 +42,7 @@ def gerar_usuario_senha(dbsession):
 
     for cpf_pessoa in cpfs_internos:
         # Gerar data de criação aleatória nos últimos 6 meses
-        dias_aleatorios = random.randint(0, 180)
+        dias_aleatorios = random.randint(2, 180)
         data_criacao = data_base + timedelta(days=dias_aleatorios)
 
         # 20% de chance de ter alteração de senha
