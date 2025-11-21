@@ -16,15 +16,25 @@ def gerar_funcionarios(dbsession):
     internos_result = dbsession.fetch_all("SELECT CPF_PESSOA FROM INTERNO_USP ORDER BY CPF_PESSOA")
     cpfs_internos = [row['cpf_pessoa'] for row in internos_result]
 
+    # Garantir que o usuário de teste seja funcionário
+    pessoa_teste_result = dbsession.fetch_one("SELECT CPF FROM PESSOA WHERE EMAIL = 'teste@usp.br'")
+    cpf_teste = pessoa_teste_result['cpf'] if pessoa_teste_result else None
+
+    # Remover o CPF de teste da lista para garantir que será incluído
+    if cpf_teste and cpf_teste in cpfs_internos:
+        cpfs_internos.remove(cpf_teste)
+
     # Embaralhar os dados para garantir aleatoriedade
     random.shuffle(cpfs_internos)
 
     # Calcular a quantidade de 20% dos dados dos 90%
-    total_internos = len(cpfs_internos)
+    total_internos = len(cpfs_internos) + (1 if cpf_teste else 0)
     percentual_20 = int(total_internos * 0.2)
 
-    # Separar os 20% dos dados
-    cpfs_funcionarios = cpfs_internos[:percentual_20]
+    # Separar os 20% dos dados (garantir que teste está nos funcionários)
+    cpfs_funcionarios = cpfs_internos[:percentual_20 - (1 if cpf_teste else 0)]
+    if cpf_teste:
+        cpfs_funcionarios.insert(0, cpf_teste)  # Inserir no início para garantir
 
     # Preparar dados para inserção no banco
     funcionarios_data = []

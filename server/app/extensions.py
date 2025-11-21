@@ -11,6 +11,24 @@ def register_extensions(app: Flask) -> None:
 def _register_db_session(app: Flask) -> None:
     @app.before_request
     def _create_db_session() -> None:
+        from flask import request
+        # Pular bootstrap para rotas de debug para evitar loop infinito
+        if request.endpoint and request.endpoint.startswith('debug.'):
+            try:
+                g.db_session = DBSession(
+                    schema=app.config.get("DB_SCHEMA"),
+                    host=app.config.get("DB_HOST"),
+                    port=app.config.get("DB_PORT"),
+                    database=app.config.get("DB_NAME"),
+                    user=app.config.get("DB_USER"),
+                    password=app.config.get("DB_PASSWORD"),
+                )
+            except Exception as exc:
+                app.logger.error(f"Failed to create database session: {exc}")
+                if 'db_session' not in g:
+                    g.db_session = None
+            return
+
         try:
             g.db_session = DBSession(
                 schema=app.config.get("DB_SCHEMA"),

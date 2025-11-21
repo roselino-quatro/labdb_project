@@ -74,7 +74,14 @@ def gerar_convite_externo(dbsession):
 
             # Data de resposta (se não for PENDENTE)
             if status != 'PENDENTE':
-                dias_resposta = random.randint(1, min(dias_aleatorios, 30))
+                # Garantir que há pelo menos 1 dia entre convite e resposta
+                # Se o convite foi hoje (dias_aleatorios = 0), resposta deve ser amanhã
+                if dias_aleatorios == 0:
+                    dias_resposta = 1
+                else:
+                    # Resposta entre 1 dia e o mínimo entre dias_aleatorios e 30
+                    max_dias = min(dias_aleatorios, 30)
+                    dias_resposta = random.randint(1, max_dias)
                 data_resposta = data_convite + timedelta(days=dias_resposta)
             else:
                 data_resposta = None

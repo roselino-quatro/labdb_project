@@ -10,8 +10,8 @@ from data_generators.populate import populate_db
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 SQL_ROOT = PROJECT_ROOT / "sql"
 SCHEMA_FILE = SQL_ROOT / "upgrade_schema.sql"
-FUNCTIONS_FILE = SQL_ROOT / "funcionalidades" / "upgrade_functions.sql"
-TRIGGERS_FILE = SQL_ROOT / "funcionalidades" / "upgrade_triggers.sql"
+FUNCTIONS_DIR = SQL_ROOT / "funcionalidades"
+TRIGGERS_FILE = FUNCTIONS_DIR / "common_triggers.sql"
 
 _schema_ready = False
 
@@ -164,6 +164,11 @@ def _apply_sample_data(db_session) -> None:
         # Não re-raise para não quebrar o bootstrap se a população falhar
 
 
+def apply_plpgsql_assets(db_session) -> None:
+    """Aplica funções e triggers SQL ao banco de dados."""
+    _apply_plpgsql_assets(db_session)
+
+
 def _apply_plpgsql_assets(db_session) -> None:
     # Verificar se o schema está completo (tipo DIA_SEMANA deve existir)
     try:
@@ -181,12 +186,24 @@ def _apply_plpgsql_assets(db_session) -> None:
         current_app.logger.warning(f"Erro ao verificar schema: {e}. Pulando aplicação de funções/triggers.")
         return
 
-    if FUNCTIONS_FILE.exists():
-        current_app.logger.info("Applying functions from %s", FUNCTIONS_FILE)
-        try:
-            db_session.run_sql_file(str(FUNCTIONS_FILE))
-        except Exception as e:
-            current_app.logger.error(f"Erro ao aplicar funções: {e}")
+    # Aplicar funções na ordem correta (auth primeiro para garantir hash_password)
+    function_files = [
+        "auth_functions.sql",  # Deve vir primeiro (contém hash_password)
+        "admin_functions.sql",
+        "internal_functions.sql",
+        "staff_functions.sql",
+    ]
+
+    for func_file in function_files:
+        func_path = FUNCTIONS_DIR / func_file
+        if func_path.exists():
+            current_app.logger.info("Applying functions from %s", func_path)
+            try:
+                db_session.run_sql_file(str(func_path))
+            except Exception as e:
+                current_app.logger.error(f"Erro ao aplicar {func_file}: {e}")
+
+    # Aplicar triggers
     if TRIGGERS_FILE.exists():
         current_app.logger.info("Applying triggers from %s", TRIGGERS_FILE)
         try:

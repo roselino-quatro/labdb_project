@@ -16,6 +16,35 @@ def gerar_usuario_senha(dbsession):
     Gera senhas para todos os internos USP (pessoas que podem fazer login).
     Usa a função hash_password()  para gerar hashes bcrypt.
     """
+    # Verificar se a tabela USUARIO_SENHA existe
+    table_check = dbsession.fetch_one("""
+        SELECT COUNT(*) as count
+        FROM information_schema.tables
+        WHERE table_schema = current_schema()
+        AND lower(table_name) = lower('USUARIO_SENHA')
+    """)
+
+    if not table_check or table_check.get("count", 0) == 0:
+        raise RuntimeError(
+            "❌ Tabela USUARIO_SENHA não existe no banco de dados. "
+            "Certifique-se de que o schema foi aplicado corretamente antes de popular os dados."
+        )
+
+    # Verificar se a função hash_password() existe
+    function_check = dbsession.fetch_one("""
+        SELECT COUNT(*) as count
+        FROM pg_proc p
+        JOIN pg_namespace n ON p.pronamespace = n.oid
+        WHERE n.nspname = current_schema()
+        AND p.proname = 'hash_password'
+    """)
+
+    if not function_check or function_check.get("count", 0) == 0:
+        raise RuntimeError(
+            "❌ Função hash_password() não existe no banco de dados. "
+            "Certifique-se de que as funções SQL (auth_functions.sql) foram aplicadas corretamente."
+        )
+
     # Buscar todos os internos USP
     internos_result = dbsession.fetch_all("SELECT CPF_PESSOA FROM INTERNO_USP")
     cpfs_internos = [row["cpf_pessoa"] for row in internos_result]
@@ -82,7 +111,28 @@ def gerar_usuario_senha(dbsession):
             )
         )
 
-    # Inserir usando função PostgreSQL para hash da senha
+    if not usuarios_data:
+        print("⚠️  Nenhum dado de usuário para inserir.")
+        return
+
+    print(f"Inserindo {len(usuarios_data)} usuários com senhas no banco...")
+    print("   (Gerando hash da senha uma vez e reutilizando para otimizar...)")
+
+    # Gerar o hash da senha uma vez (já que todos usam a mesma senha padrão)
+    # Isso é muito mais rápido que gerar 4500 hashes individuais
+    print("   Gerando hash da senha padrão...")
+    # Usar cursor direto para passar tupla como parâmetro
+    with dbsession.connection.cursor() as cursor:
+        cursor.execute("SELECT hash_password(%s) as hash", (SENHA_PADRAO,))
+        result = cursor.fetchone()
+        senha_hash = result[0] if result else None
+
+    if not senha_hash:
+        raise RuntimeError("Falha ao gerar hash da senha")
+
+    print("   ✅ Hash gerado com sucesso!")
+
+    # Inserir usando hash pré-gerado (muito mais rápido)
     query = """
         INSERT INTO USUARIO_SENHA (
             CPF_PESSOA,
@@ -95,7 +145,7 @@ def gerar_usuario_senha(dbsession):
         )
         VALUES (
             %s,
-            hash_password(%s),
+            %s,
             %s,
             %s,
             %s,
@@ -104,18 +154,41 @@ def gerar_usuario_senha(dbsession):
         )
     """
 
-    print(f"Inserindo {len(usuarios_data)} usuários com senhas no banco...")
-
-    # Preparar dados com senha padrão
-    dados_com_senha = [
-        (cpf, SENHA_PADRAO, data_criacao, data_alt, bloqueado, tentativas, data_login)
+    # Preparar dados com hash pré-gerado
+    dados_com_hash = [
+        (cpf, senha_hash, data_criacao, data_alt, bloqueado, tentativas, data_login)
         for cpf, data_criacao, data_alt, bloqueado, tentativas, data_login in usuarios_data
     ]
 
-    dbsession.executemany(query, dados_com_senha)
-    print(f"✅ {len(usuarios_data)} usuários com senhas inseridos com sucesso!")
-    print(f"   Senha padrão para testes: '{SENHA_PADRAO}'")
-    print(f"   📧 Email para login: '{EMAIL_TESTE}'")
+    try:
+        # Inserir em lotes para dar feedback de progresso
+        BATCH_SIZE = 500  # Lotes maiores agora que não precisamos gerar hash para cada um
+        total = len(dados_com_hash)
+        inserted = 0
+
+        for i in range(0, total, BATCH_SIZE):
+            batch = dados_com_hash[i:i + BATCH_SIZE]
+            dbsession.executemany(query, batch)
+            inserted += len(batch)
+
+            # Feedback de progresso
+            percent = (inserted / total) * 100
+            print(f"   Progresso: {inserted}/{total} ({percent:.1f}%)")
+
+        print(f"✅ {len(usuarios_data)} usuários com senhas inseridos com sucesso!")
+        print(f"   Senha padrão para testes: '{SENHA_PADRAO}'")
+        print(f"   📧 Email para login: '{EMAIL_TESTE}'")
+    except Exception as e:
+        error_msg = (
+            f"❌ Erro ao inserir usuários com senhas: {e}\n"
+            f"   Verifique se:\n"
+            f"   - A tabela USUARIO_SENHA existe e está acessível\n"
+            f"   - A função hash_password() está disponível\n"
+            f"   - Os CPFs dos internos USP são válidos\n"
+            f"   - Não há conflitos de chave primária (usuários já existentes)"
+        )
+        print(error_msg)
+        raise RuntimeError(error_msg) from e
 
 
 if __name__ == "__main__":

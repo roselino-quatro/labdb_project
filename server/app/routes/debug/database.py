@@ -12,9 +12,34 @@ from app.services.database.downgrade import downgrade_database
 @debug_blueprint.post("/populate-db")
 def populate_database():
     """Popula o banco de dados com dados sintéticos usando o sistema unificado."""
+    dbsession = None
     try:
-        # Usa o método unificado que cria schema e popula dados
-        populate_db()
+        # Criar sessão própria (não usar g.db_session para evitar conflitos)
+        dbsession = DBSession()
+
+        # Garantir que schema e funções existem antes de popular
+        schema_migration = SchemaMigration(dbsession)
+
+        # Verificar se schema existe
+        with dbsession.connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT COUNT(*) as count
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+                AND table_name = 'pessoa'
+            """)
+            result = cursor.fetchone()
+            if not result or result[0] == 0:
+                # Criar schema se não existir
+                schema_migration.upgrade_schema()
+
+        # Aplicar funções e triggers (inclui hash_password)
+        from app.services.database.bootstrap import apply_plpgsql_assets
+        apply_plpgsql_assets(dbsession)
+
+        # Usa o método unificado que popula dados
+        from data_generators.data_generator import populate_database as gen_populate
+        gen_populate(dbsession)
 
         return jsonify({
             "success": True,
@@ -22,26 +47,44 @@ def populate_database():
         })
 
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Erro ao popular banco: {error_details}")
         return jsonify({
             "success": False,
             "message": f"Erro ao popular banco: {str(e)}"
         }), 500
+    finally:
+        if dbsession:
+            dbsession.close()
 
 
 @debug_blueprint.post("/clear-db")
 def clear_database():
     """Apaga todos os dados do banco de dados e recria o schema vazio."""
+    dbsession = None
     try:
         # Resetar flag do bootstrap para forçar recriação
         import app.services.database.bootstrap as bootstrap_module
         bootstrap_module._schema_ready = False
 
+        # Criar sessão própria (não usar g.db_session para evitar conflitos)
         dbsession = DBSession()
         schema_migration = SchemaMigration(dbsession)
 
-        # Limpar todos os dados e schema
-        downgrade_database(dbsession)
-        schema_migration.downgrade_schema()
+        # Limpar todos os dados primeiro
+        try:
+            downgrade_database(dbsession)
+            dbsession.connection.commit()
+        except Exception as e:
+            dbsession.connection.rollback()
+            print(f"Aviso ao limpar dados: {e}")
+
+        # Limpar schema
+        try:
+            schema_migration.downgrade_schema()
+        except Exception as e:
+            print(f"Aviso ao fazer downgrade do schema: {e}")
 
         # Recriar o schema vazio (sem dados, mas com estrutura)
         schema_migration.upgrade_schema()
@@ -59,37 +102,8 @@ def clear_database():
                 raise Exception("Schema não foi criado corretamente")
 
         # Aplicar funções e triggers (que dependem do schema)
-        project_root = Path(__file__).parent.parent.parent.parent
-        functions_file = project_root / "sql" / "funcionalidades" / "upgrade_functions.sql"
-        triggers_file = project_root / "sql" / "funcionalidades" / "upgrade_triggers.sql"
-
-        # Aplicar funções com tratamento de erro melhorado
-        if functions_file.exists():
-            try:
-                with open(functions_file, 'r') as f:
-                    query = f.read()
-                with dbsession.connection.cursor() as cursor:
-                    cursor.execute(query)
-                dbsession.connection.commit()
-            except Exception as e:
-                dbsession.connection.rollback()
-                # Não é crítico - o bootstrap tentará novamente na próxima requisição
-                print(f"Aviso: Erro ao aplicar funções (será tentado novamente pelo bootstrap): {e}")
-
-        # Aplicar triggers com tratamento de erro melhorado
-        if triggers_file.exists():
-            try:
-                with open(triggers_file, 'r') as f:
-                    query = f.read()
-                with dbsession.connection.cursor() as cursor:
-                    cursor.execute(query)
-                dbsession.connection.commit()
-            except Exception as e:
-                dbsession.connection.rollback()
-                # Não é crítico - o bootstrap tentará novamente na próxima requisição
-                print(f"Aviso: Erro ao aplicar triggers (será tentado novamente pelo bootstrap): {e}")
-
-        dbsession.close()
+        from app.services.database.bootstrap import apply_plpgsql_assets
+        apply_plpgsql_assets(dbsession)
 
         return jsonify({
             "success": True,
@@ -97,7 +111,13 @@ def clear_database():
         })
 
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Erro ao limpar banco: {error_details}")
         return jsonify({
             "success": False,
             "message": f"Erro ao limpar banco: {str(e)}"
         }), 500
+    finally:
+        if dbsession:
+            dbsession.close()

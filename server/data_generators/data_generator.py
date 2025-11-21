@@ -110,7 +110,17 @@ def populate_database(dbsession):
             generator_func(dbsession, **kwargs)
             print(f"✅ {table_name} concluído.\n")
         except Exception as e:
-            print(f"❌ Erro ao gerar {table_name}: {e}")
+            error_type = type(e).__name__
+            error_msg = str(e)
+            print(f"❌ Erro ao gerar {table_name}:")
+            print(f"   Tipo: {error_type}")
+            print(f"   Mensagem: {error_msg}")
+            print(f"\n{'=' * 60}")
+            print(f"❌ Falha na geração de dados. Processo interrompido.")
+            print(f"{'=' * 60}")
+            import traceback
+            print("\nTraceback completo:")
+            traceback.print_exc()
             raise
 
     print("\n" + "=" * 60)

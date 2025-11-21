@@ -28,11 +28,12 @@ def _table_exists(dbsession: DBSession, table_name: str) -> bool:
 def downgrade_database(dbsession: DBSession):
     """Remove todos os dados do banco (mantém o schema)."""
     tables = [
+        'solicitacao_cadastro', 'metrica_acesso_diaria', 'auditoria_login',
         'atividade_grupo_extensao', 'grupo_extensao', 'supervisao_evento', 'evento',
         'participacao_atividade', 'conduz_atividade', 'ocorrencia_semanal', 'atividade',
         'reserva_equipamento', 'reserva', 'doacao', 'equipamento', 'instalacao',
         'educador_fisico', 'funcionario_restricao', 'funcionario_atribuicao',
-        'funcionario', 'interno_usp', 'pessoa'
+        'funcionario', 'usuario_senha', 'interno_usp', 'pessoa'
     ]
 
     for table in tables:

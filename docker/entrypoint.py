@@ -9,12 +9,11 @@ import time
 import subprocess
 from pathlib import Path
 
-# Adiciona o diretório pai ao PYTHONPATH se não estiver presente
-# Garante que imports da raiz funcionem
-current_dir = Path(__file__).resolve().parent
-root_dir = current_dir.parent
-if str(root_dir) not in sys.path:
-    sys.path.append(str(root_dir))
+# Adiciona /app ao PYTHONPATH se não estiver presente
+# Garante que imports funcionem (app e data_generators estão em /app)
+app_dir = Path("/app")
+if str(app_dir) not in sys.path:
+    sys.path.insert(0, str(app_dir))
 
 def wait_for_postgres(max_attempts=30):
     """Aguarda o PostgreSQL estar pronto para conexões."""
