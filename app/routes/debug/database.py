@@ -33,7 +33,7 @@ def clear_database():
     """Apaga todos os dados do banco de dados e recria o schema vazio."""
     try:
         # Resetar flag do bootstrap para forçar recriação
-        import app.services.bootstrap as bootstrap_module
+        import app.services.database.bootstrap as bootstrap_module
         bootstrap_module._schema_ready = False
 
         dbsession = DBSession()
