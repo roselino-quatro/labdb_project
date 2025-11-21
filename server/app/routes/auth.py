@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, jsonify, request, session
 
 from app.services.database import executor as sql_queries
 
@@ -9,19 +9,18 @@ auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 @auth_blueprint.route("/login", methods=["GET"])
 def login():
     if session.get("user_id"):
-        return redirect(_get_redirect_url_for_user())
-    return render_template("auth/login.html")
+        return jsonify({"redirect": _get_redirect_url_for_user()})
+    return jsonify({"message": "Login page"})
 
 
 @auth_blueprint.route("/login", methods=["POST"])
 def login_post():
-    email = request.form.get("email", "").strip()
-    password = request.form.get("password", "").strip()
+    email = request.form.get("email") or request.json.get("email", "").strip() if request.is_json else ""
+    password = request.form.get("password") or request.json.get("password", "").strip() if request.is_json else ""
     ip_origin = request.remote_addr
 
     if not email or not password:
-        flash("E-mail e senha são obrigatórios", "error")
-        return render_template("auth/login.html"), 400
+        return jsonify({"success": False, "message": "E-mail e senha são obrigatórios"}), 400
 
     result = sql_queries.fetch_one(
         "queries/auth/login_user.sql",
@@ -33,14 +32,12 @@ def login_post():
     )
 
     if not result or not result.get("result"):
-        flash("Credenciais inválidas", "error")
-        return render_template("auth/login.html"), 401
+        return jsonify({"success": False, "message": "Credenciais inválidas"}), 401
 
     auth_data = result["result"]
 
     if not auth_data.get("success"):
-        flash(auth_data.get("message", "Credenciais inválidas"), "error")
-        return render_template("auth/login.html"), 401
+        return jsonify({"success": False, "message": auth_data.get("message", "Credenciais inválidas")}), 401
 
     # Store user data in session
     session["user_id"] = auth_data["user_id"]
@@ -48,31 +45,46 @@ def login_post():
     session["user_nome"] = auth_data["nome"]
     session["profile_access"] = _build_profile_access(auth_data.get("roles", []))
 
-    return redirect(_get_redirect_url_for_user())
+    return jsonify({
+        "success": True,
+        "message": "Login realizado com sucesso",
+        "redirect": _get_redirect_url_for_user(),
+        "user": {
+            "user_id": auth_data["user_id"],
+            "email": auth_data["email"],
+            "nome": auth_data["nome"],
+        }
+    })
 
 
 @auth_blueprint.route("/register", methods=["GET"])
 def register():
     if session.get("user_id"):
-        return redirect(_get_redirect_url_for_user())
-    return render_template("auth/register.html")
+        return jsonify({"redirect": _get_redirect_url_for_user()})
+    return jsonify({"message": "Register page"})
 
 
 @auth_blueprint.route("/register", methods=["POST"])
 def register_post():
-    cpf = request.form.get("cpf", "").strip()
-    nusp = request.form.get("nusp", "").strip()
-    email = request.form.get("email", "").strip()
-    password = request.form.get("password", "").strip()
-    password_confirm = request.form.get("password_confirm", "").strip()
+    if request.is_json:
+        data = request.json
+        cpf = data.get("cpf", "").strip()
+        nusp = data.get("nusp", "").strip()
+        email = data.get("email", "").strip()
+        password = data.get("password", "").strip()
+        password_confirm = data.get("password_confirm", "").strip()
+    else:
+        cpf = request.form.get("cpf", "").strip()
+        nusp = request.form.get("nusp", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "").strip()
+        password_confirm = request.form.get("password_confirm", "").strip()
 
     if not all([cpf, nusp, email, password, password_confirm]):
-        flash("Todos os campos são obrigatórios", "error")
-        return render_template("auth/register.html"), 400
+        return jsonify({"success": False, "message": "Todos os campos são obrigatórios"}), 400
 
     if password != password_confirm:
-        flash("As senhas não coincidem", "error")
-        return render_template("auth/register.html"), 400
+        return jsonify({"success": False, "message": "As senhas não coincidem"}), 400
 
     result = sql_queries.fetch_one(
         "queries/auth/request_registration.sql",
@@ -85,51 +97,49 @@ def register_post():
     )
 
     if not result or not result.get("result"):
-        flash("Erro ao processar solicitação de cadastro", "error")
-        return render_template("auth/register.html"), 500
+        return jsonify({"success": False, "message": "Erro ao processar solicitação de cadastro"}), 500
 
     registration_data = result["result"]
 
     if not registration_data.get("success"):
-        flash(registration_data.get("message", "Erro ao processar solicitação"), "error")
-        return render_template("auth/register.html"), 400
+        return jsonify({"success": False, "message": registration_data.get("message", "Erro ao processar solicitação")}), 400
 
-    flash(registration_data.get("message", "Solicitação de cadastro criada com sucesso"), "success")
-    return redirect(url_for("auth.login"))
+    return jsonify({
+        "success": True,
+        "message": registration_data.get("message", "Solicitação de cadastro criada com sucesso")
+    })
 
 
 @auth_blueprint.route("/pending-registrations", methods=["GET"])
 def pending_registrations():
     if not session.get("user_id"):
-        flash("Autenticação necessária", "error")
-        return redirect(url_for("auth.login"))
+        return jsonify({"success": False, "message": "Autenticação necessária"}), 401
 
     # Check if user is admin (simple check via session)
     profile_access = session.get("profile_access", {})
     if not profile_access.get("admin"):
-        flash("Acesso de administrador necessário", "error")
-        return redirect(url_for("home.index"))
+        return jsonify({"success": False, "message": "Acesso de administrador necessário"}), 403
 
     registrations = sql_queries.fetch_all("queries/auth/list_pending_registrations.sql")
 
-    return render_template("auth/pending_registrations.html", registrations=registrations)
+    return jsonify({
+        "success": True,
+        "registrations": registrations
+    })
 
 
 @auth_blueprint.route("/approve-registration", methods=["POST"])
 def approve_registration():
     if not session.get("user_id"):
-        flash("Autenticação necessária", "error")
-        return redirect(url_for("auth.login"))
+        return jsonify({"success": False, "message": "Autenticação necessária"}), 401
 
     profile_access = session.get("profile_access", {})
     if not profile_access.get("admin"):
-        flash("Acesso de administrador necessário", "error")
-        return redirect(url_for("home.index"))
+        return jsonify({"success": False, "message": "Acesso de administrador necessário"}), 403
 
-    id_solicitacao = request.form.get("id_solicitacao")
+    id_solicitacao = request.form.get("id_solicitacao") or (request.json.get("id_solicitacao") if request.is_json else None)
     if not id_solicitacao:
-        flash("Solicitação inválida", "error")
-        return redirect(url_for("auth.pending_registrations"))
+        return jsonify({"success": False, "message": "Solicitação inválida"}), 400
 
     result = sql_queries.fetch_one(
         "queries/auth/approve_registration.sql",
@@ -140,31 +150,31 @@ def approve_registration():
     )
 
     if result and result.get("result") and result["result"].get("success"):
-        flash("Cadastro aprovado com sucesso", "success")
+        return jsonify({"success": True, "message": "Cadastro aprovado com sucesso"})
     else:
         message = result.get("result", {}).get("message", "Erro ao aprovar cadastro") if result else "Erro ao processar solicitação"
-        flash(message, "error")
-
-    return redirect(url_for("auth.pending_registrations"))
+        return jsonify({"success": False, "message": message}), 400
 
 
 @auth_blueprint.route("/reject-registration", methods=["POST"])
 def reject_registration():
     if not session.get("user_id"):
-        flash("Autenticação necessária", "error")
-        return redirect(url_for("auth.login"))
+        return jsonify({"success": False, "message": "Autenticação necessária"}), 401
 
     profile_access = session.get("profile_access", {})
     if not profile_access.get("admin"):
-        flash("Acesso de administrador necessário", "error")
-        return redirect(url_for("home.index"))
+        return jsonify({"success": False, "message": "Acesso de administrador necessário"}), 403
 
-    id_solicitacao = request.form.get("id_solicitacao")
-    observacoes = request.form.get("observacoes", "").strip()
+    if request.is_json:
+        data = request.json
+        id_solicitacao = data.get("id_solicitacao")
+        observacoes = data.get("observacoes", "").strip()
+    else:
+        id_solicitacao = request.form.get("id_solicitacao")
+        observacoes = request.form.get("observacoes", "").strip()
 
     if not id_solicitacao:
-        flash("Solicitação inválida", "error")
-        return redirect(url_for("auth.pending_registrations"))
+        return jsonify({"success": False, "message": "Solicitação inválida"}), 400
 
     result = sql_queries.fetch_one(
         "queries/auth/reject_registration.sql",
@@ -176,18 +186,16 @@ def reject_registration():
     )
 
     if result and result.get("result") and result["result"].get("success"):
-        flash("Cadastro rejeitado", "success")
+        return jsonify({"success": True, "message": "Cadastro rejeitado"})
     else:
         message = result.get("result", {}).get("message", "Erro ao rejeitar cadastro") if result else "Erro ao processar solicitação"
-        flash(message, "error")
-
-    return redirect(url_for("auth.pending_registrations"))
+        return jsonify({"success": False, "message": message}), 400
 
 
 @auth_blueprint.route("/logout", methods=["GET"])
 def logout():
     session.clear()
-    return redirect(url_for("home.index"))
+    return jsonify({"success": True, "message": "Logout realizado com sucesso"})
 
 
 def _build_profile_access(roles):
@@ -201,11 +209,11 @@ def _get_redirect_url_for_user():
     """Get redirect URL based on user's primary role."""
     profile_access = session.get("profile_access", {})
     if profile_access.get("admin"):
-        return url_for("admin.dashboard")
+        return "/admin/dashboard"
     if profile_access.get("staff"):
-        return url_for("staff.dashboard")
+        return "/staff/dashboard"
     if profile_access.get("internal"):
-        return url_for("internal.dashboard")
+        return "/internal/dashboard"
     if profile_access.get("external"):
-        return url_for("external.dashboard")
-    return url_for("home.index")
+        return "/external/dashboard"
+    return "/"

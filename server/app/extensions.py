@@ -1,10 +1,12 @@
 from flask import Flask, g
+from flask_cors import CORS
 
 from app.database import DBSession
 from app.services.database.bootstrap import ensure_schema_populated
 
 
 def register_extensions(app: Flask) -> None:
+    CORS(app, supports_credentials=True, origins=['http://localhost:3000', 'http://nextjs_app:3000'])
     _register_db_session(app)
 
 

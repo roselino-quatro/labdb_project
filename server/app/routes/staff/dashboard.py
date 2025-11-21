@@ -1,4 +1,4 @@
-from flask import render_template, request
+from flask import jsonify, request
 
 from app.routes.staff import staff_blueprint
 from app.services.database import executor as sql_queries
@@ -7,7 +7,7 @@ from app.services.auth.decorators import require_role
 
 @staff_blueprint.get("/", endpoint="dashboard")
 @require_role("staff", "admin")
-def dashboard() -> str:
+def dashboard():
     filters = {
         "weekday": request.args.get("weekday") or None,
         "group_name": request.args.get("group") or None,
@@ -16,8 +16,8 @@ def dashboard() -> str:
 
     activities = sql_queries.fetch_all("queries/staff/activities.sql", filters)
 
-    context = {
+    return jsonify({
+        "success": True,
         "filters": filters,
         "activities": activities,
-    }
-    return render_template("staff/dashboard.html", **context)
+    })

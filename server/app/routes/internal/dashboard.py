@@ -1,4 +1,4 @@
-from flask import render_template, request
+from flask import jsonify, request
 
 from app.routes.internal import internal_blueprint
 from app.services.database import executor as sql_queries
@@ -7,7 +7,7 @@ from app.services.auth.decorators import require_role
 
 @internal_blueprint.get("/", endpoint="dashboard")
 @require_role("internal", "admin")
-def dashboard() -> str:
+def dashboard():
     cpf = request.args.get("cpf") or ""
     reservas = []
     if cpf:
@@ -31,12 +31,12 @@ def dashboard() -> str:
             },
         )
 
-    context = {
+    return jsonify({
+        "success": True,
         "cpf": cpf,
         "reservas": reservas,
         "date_filter": date_param,
         "start_filter": start_param,
         "end_filter": end_param,
         "available_installs": available_installs,
-    }
-    return render_template("internal/dashboard.html", **context)
+    })

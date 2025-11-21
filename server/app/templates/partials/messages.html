@@ -1,9 +1,0 @@
-{% if messages %}
-<div class="mb-4 space-y-2">
-    {% for category, text in messages %}
-    <div class="rounded border-l-4 p-4 {% if category == 'success' %}border-green-500 bg-green-50 text-green-800{% elif category == 'error' %}border-red-500 bg-red-50 text-red-800{% elif category == 'warning' %}border-yellow-500 bg-yellow-50 text-yellow-800{% else %}border-uspprimary bg-uspsecondary text-uspprimary{% endif %}">
-        {{ text }}
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
