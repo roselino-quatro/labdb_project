@@ -1,0 +1,5 @@
+- ajustar cadastro de interno usp
+- verificar todas as funcionalidades de interno, funcionario e externo (comecando por externo)
+- revisar triggers e functions em sql, reduzir ao maximo responsibilidade do flask
+- adicionar mais ferramentas da linguagem SQL
+- organizar todo o codigo, organizar chamada de sql e rotas

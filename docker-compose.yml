@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - ./server/pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -31,7 +31,19 @@ services:
     ports:
       - "5050:5050"
     volumes:
-      - .:/app
+      - ./server:/app
     depends_on:
       postgres:
         condition: service_healthy
+
+  nextjs_app:
+    build:
+      context: ./interface
+      dockerfile: Dockerfile
+    container_name: nextjs_app
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5050
+    ports:
+      - "3000:3000"
+    depends_on:
+      - flask_app
