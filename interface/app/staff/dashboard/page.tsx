@@ -3,6 +3,7 @@
 import { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { apiGet } from '@/lib/api';
 
 interface Activity {
@@ -173,8 +174,10 @@ function StaffDashboardContent() {
 
 export default function StaffDashboardPage() {
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
-      <StaffDashboardContent />
-    </Suspense>
+    <ProtectedRoute allowedRoles={['staff', 'admin']}>
+      <Suspense fallback={<div>Carregando...</div>}>
+        <StaffDashboardContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }

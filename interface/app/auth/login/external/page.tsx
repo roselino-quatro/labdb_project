@@ -6,10 +6,9 @@ import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiPost } from '@/lib/api';
 
-export default function LoginPage() {
+export default function ExternalLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,19 +22,18 @@ export default function LoginPage() {
         success: boolean;
         message?: string;
         redirect?: string;
-      }>('/auth/login', {
-        email,
-        password,
+      }>('/auth/login/external', {
+        token: token.trim(),
       });
 
       if (data.success) {
         if (data.redirect) {
           router.push(data.redirect);
         } else {
-          router.push('/admin/dashboard');
+          router.push('/external/dashboard');
         }
       } else {
-        setError(data.message || 'Credenciais inválidas');
+        setError(data.message || 'Token inválido');
       }
     } catch (err: unknown) {
       let errorMessage = 'Erro ao fazer login. Tente novamente.';
@@ -62,9 +60,9 @@ export default function LoginPage() {
           <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#1094ab] text-xl font-bold text-white">
             CE
           </span>
-          <h1 className="mt-4 text-2xl font-bold text-gray-900">Acesse o Sistema CEFER</h1>
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">Acesso Externo</h1>
           <p className="mt-2 text-sm text-gray-500">
-            Login para membros internos da USP e funcionários.
+            Insira o token do seu convite para acessar o sistema.
           </p>
         </div>
         {error && (
@@ -74,59 +72,46 @@ export default function LoginPage() {
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
-              E-mail institucional
+            <label htmlFor="token" className="mb-1 block text-sm font-medium text-gray-700">
+              Token do Convite
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="token"
+              name="token"
+              type="text"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-[#1094ab] focus:outline-none focus:ring-1 focus:ring-[#1094ab]"
-              placeholder="nome.sobrenome@usp.br"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              className="w-full rounded border border-gray-300 px-4 py-2 text-sm font-mono shadow-sm focus:border-[#1094ab] focus:outline-none focus:ring-1 focus:ring-[#1094ab]"
+              placeholder="Insira o token do convite"
+              autoComplete="off"
             />
-          </div>
-          <div>
-            <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
-              Senha
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-[#1094ab] focus:outline-none focus:ring-1 focus:ring-[#1094ab]"
-              placeholder="Digite sua senha"
-            />
+            <p className="mt-1 text-xs text-gray-500">
+              O token foi enviado no seu convite por e-mail.
+            </p>
           </div>
           <button
             type="submit"
             disabled={loading}
             className="w-full rounded bg-[#1094ab] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#64c4d2] hover:text-[#1094ab] disabled:opacity-50"
           >
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? 'Acessando...' : 'Acessar'}
           </button>
         </form>
         <div className="mt-6 text-center">
           <Link
-            href="/auth/login/external"
+            href="/auth/login"
             className="text-sm text-[#1094ab] hover:underline"
           >
-            Acessar como usuário externo →
+            ← Voltar para login interno/funcionário
           </Link>
         </div>
-        <div className="mt-6 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
-          <h2 className="mb-2 font-semibold text-gray-800">Perfis com acesso</h2>
-          <ul className="space-y-1">
-            <li>Administrador: gerenciamento completo do CEFER.</li>
-            <li>Funcionário CEFER: administração de atividades e instalações.</li>
-            <li>Interno USP: reservas, inscrições e convites.</li>
-            <li>Externo USP: acesso mediante convite validado.</li>
-          </ul>
+        <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+          <h2 className="mb-2 font-semibold text-gray-800">Acesso Externo</h2>
+          <p>
+            Usuários externos podem acessar o sistema mediante convite validado.
+            O token do convite foi enviado por e-mail quando você foi convidado para participar de uma atividade.
+          </p>
         </div>
       </div>
     </Layout>

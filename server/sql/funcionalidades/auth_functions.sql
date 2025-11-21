@@ -422,3 +422,269 @@ BEGIN
     RETURN result;
 END;
 $$ LANGUAGE plpgsql;
+
+-- FUNCTION: authenticate_external_by_token
+-- Authenticates an external user by token and returns invite information
+-- Parameters:
+--   token: The invite token
+-- Returns: JSON with success status, invite data, and activity information
+CREATE OR REPLACE FUNCTION authenticate_external_by_token(token VARCHAR)
+RETURNS JSON
+AS $$
+DECLARE
+    invite_record RECORD;
+    activity_record RECORD;
+    result JSON;
+BEGIN
+    -- Find invite by token
+    SELECT * INTO invite_record
+    FROM convite_externo
+    WHERE convite_externo.token = authenticate_external_by_token.token;
+
+    IF NOT FOUND THEN
+        RETURN json_build_object(
+            'success', FALSE,
+            'message', 'Token inválido ou convite não encontrado'
+        );
+    END IF;
+
+    -- Check if invite status is valid (PENDENTE or ACEITO)
+    IF invite_record.status NOT IN ('PENDENTE', 'ACEITO') THEN
+        RETURN json_build_object(
+            'success', FALSE,
+            'message', 'Convite não está disponível. Status: ' || invite_record.status
+        );
+    END IF;
+
+    -- Get activity information if exists
+    IF invite_record.id_atividade IS NOT NULL THEN
+        SELECT * INTO activity_record
+        FROM atividade
+        WHERE id_atividade = invite_record.id_atividade;
+    END IF;
+
+    -- Build result with invite and activity data
+    result := json_build_object(
+        'success', TRUE,
+        'invite_id', invite_record.id_convite,
+        'invite_status', invite_record.status,
+        'invite_data', json_build_object(
+            'nome_convidado', invite_record.nome_convidado,
+            'documento_convidado', invite_record.documento_convidado,
+            'email_convidado', invite_record.email_convidado,
+            'telefone_convidado', invite_record.telefone_convidado,
+            'data_convite', invite_record.data_convite,
+            'data_resposta', invite_record.data_resposta,
+            'observacoes', invite_record.observacoes
+        ),
+        'activity_id', invite_record.id_atividade,
+        'activity_data', CASE
+            WHEN activity_record.id_atividade IS NOT NULL THEN
+                json_build_object(
+                    'id_atividade', activity_record.id_atividade,
+                    'nome', activity_record.nome,
+                    'descricao', activity_record.descricao,
+                    'data_inicio', activity_record.data_inicio,
+                    'data_fim', activity_record.data_fim
+                )
+            ELSE NULL
+        END
+    );
+
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- FUNCTION: accept_external_invite
+-- Accepts an external invite and creates participation if document is valid CPF
+-- Parameters:
+--   invite_id: ID of the invite
+-- Returns: JSON with success status and message
+CREATE OR REPLACE FUNCTION accept_external_invite(invite_id INT)
+RETURNS JSON
+AS $$
+DECLARE
+    invite_record RECORD;
+    activity_record RECORD;
+    pessoa_exists BOOLEAN;
+    participation_exists BOOLEAN;
+    is_valid_cpf BOOLEAN;
+    current_participants_count INT;
+    cpf_document VARCHAR(11);
+BEGIN
+    -- Get invite record
+    SELECT * INTO invite_record
+    FROM convite_externo
+    WHERE id_convite = accept_external_invite.invite_id;
+
+    IF NOT FOUND THEN
+        RETURN json_build_object(
+            'success', FALSE,
+            'message', 'Convite não encontrado'
+        );
+    END IF;
+
+    IF invite_record.status != 'PENDENTE' THEN
+        RETURN json_build_object(
+            'success', FALSE,
+            'message', 'Convite não está pendente. Status atual: ' || invite_record.status
+        );
+    END IF;
+
+    -- Check if DOCUMENTO_CONVIDADO is a valid CPF (11 digits, numeric only)
+    is_valid_cpf := LENGTH(TRIM(invite_record.documento_convidado)) = 11
+                    AND invite_record.documento_convidado ~ '^[0-9]+$';
+
+    -- If document is a valid CPF, create PESSOA and PARTICIPACAO_ATIVIDADE
+    IF is_valid_cpf THEN
+        cpf_document := TRIM(invite_record.documento_convidado);
+
+        -- Check if PESSOA already exists
+        SELECT EXISTS(SELECT 1 FROM pessoa WHERE cpf = cpf_document) INTO pessoa_exists;
+
+        -- Create or update PESSOA record
+        -- Note: PESSOA.email is NOT NULL, so we use a default email if not provided
+        IF NOT pessoa_exists THEN
+            INSERT INTO pessoa (cpf, nome, email, celular)
+            VALUES (
+                cpf_document,
+                invite_record.nome_convidado,
+                COALESCE(invite_record.email_convidado, cpf_document || '@externo.cefer.usp.br'),
+                invite_record.telefone_convidado
+            )
+            ON CONFLICT (cpf) DO UPDATE
+            SET nome = EXCLUDED.nome,
+                email = CASE
+                    WHEN EXCLUDED.email IS NOT NULL AND EXCLUDED.email != '' THEN EXCLUDED.email
+                    ELSE pessoa.email
+                END,
+                celular = COALESCE(EXCLUDED.celular, pessoa.celular);
+        ELSE
+            -- Update existing PESSOA if needed
+            UPDATE pessoa
+            SET nome = invite_record.nome_convidado,
+                email = CASE
+                    WHEN invite_record.email_convidado IS NOT NULL AND invite_record.email_convidado != ''
+                    THEN invite_record.email_convidado
+                    ELSE pessoa.email
+                END,
+                celular = COALESCE(invite_record.telefone_convidado, pessoa.celular)
+            WHERE cpf = cpf_document;
+        END IF;
+
+        -- Check if activity exists and get its information
+        IF invite_record.id_atividade IS NOT NULL THEN
+            SELECT * INTO activity_record
+            FROM atividade
+            WHERE id_atividade = invite_record.id_atividade;
+
+            IF FOUND THEN
+                -- Check if participant is already registered
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM participacao_atividade
+                    WHERE cpf_participante = cpf_document
+                    AND id_atividade = invite_record.id_atividade
+                ) INTO participation_exists;
+
+                IF NOT participation_exists THEN
+                    -- Check if there are available spots
+                    SELECT COUNT(*) INTO current_participants_count
+                    FROM participacao_atividade
+                    WHERE id_atividade = invite_record.id_atividade;
+
+                    -- If activity has a limit and it's reached, don't create participation
+                    IF activity_record.vagas_limite IS NOT NULL
+                       AND current_participants_count >= activity_record.vagas_limite THEN
+                        -- Update invite status to ACEITO but don't create participation
+                        UPDATE convite_externo
+                        SET status = 'ACEITO',
+                            data_resposta = CURRENT_TIMESTAMP
+                        WHERE id_convite = accept_external_invite.invite_id;
+
+                        RETURN json_build_object(
+                            'success', TRUE,
+                            'message', 'Convite aceito, mas a atividade está com vagas esgotadas. Entre em contato com o organizador.'
+                        );
+                    END IF;
+
+                    -- Create participation record
+                    INSERT INTO participacao_atividade (
+                        cpf_participante,
+                        id_atividade,
+                        cpf_convidante_interno,
+                        data_inscricao
+                    )
+                    VALUES (
+                        cpf_document,
+                        invite_record.id_atividade,
+                        invite_record.cpf_convidante,
+                        CURRENT_DATE
+                    );
+                END IF;
+            END IF;
+        END IF;
+    END IF;
+
+    -- Update invite status
+    UPDATE convite_externo
+    SET status = 'ACEITO',
+        data_resposta = CURRENT_TIMESTAMP
+    WHERE id_convite = accept_external_invite.invite_id;
+
+    RETURN json_build_object(
+        'success', TRUE,
+        'message', CASE
+            WHEN is_valid_cpf AND invite_record.id_atividade IS NOT NULL THEN
+                'Convite aceito e participação criada com sucesso'
+            WHEN is_valid_cpf THEN
+                'Convite aceito. PESSOA criada/atualizada.'
+            ELSE
+                'Convite aceito com sucesso'
+        END
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+-- FUNCTION: reject_external_invite
+-- Rejects an external invite
+-- Parameters:
+--   invite_id: ID of the invite
+-- Returns: JSON with success status and message
+CREATE OR REPLACE FUNCTION reject_external_invite(invite_id INT)
+RETURNS JSON
+AS $$
+DECLARE
+    invite_record RECORD;
+BEGIN
+    -- Get invite record
+    SELECT * INTO invite_record
+    FROM convite_externo
+    WHERE id_convite = reject_external_invite.invite_id;
+
+    IF NOT FOUND THEN
+        RETURN json_build_object(
+            'success', FALSE,
+            'message', 'Convite não encontrado'
+        );
+    END IF;
+
+    IF invite_record.status != 'PENDENTE' THEN
+        RETURN json_build_object(
+            'success', FALSE,
+            'message', 'Convite não está pendente. Status atual: ' || invite_record.status
+        );
+    END IF;
+
+    -- Update invite status
+    UPDATE convite_externo
+    SET status = 'RECUSADO',
+        data_resposta = CURRENT_TIMESTAMP
+    WHERE id_convite = reject_external_invite.invite_id;
+
+    RETURN json_build_object(
+        'success', TRUE,
+        'message', 'Convite recusado'
+    );
+END;
+$$ LANGUAGE plpgsql;

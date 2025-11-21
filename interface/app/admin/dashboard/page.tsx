@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { apiGet } from '@/lib/api';
 
 interface Stat {
@@ -64,11 +65,12 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <Layout>
-      <section className="space-y-6">
-        <header>
-          <h1 className="text-2xl font-semibold text-gray-900">Visão Geral Administrativa</h1>
-        </header>
+    <ProtectedRoute allowedRoles={['admin']}>
+      <Layout>
+        <section className="space-y-6">
+          <header>
+            <h1 className="text-2xl font-semibold text-gray-900">Visão Geral Administrativa</h1>
+          </header>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.length > 0 ? (
@@ -160,5 +162,6 @@ export default function AdminDashboardPage() {
         </div>
       </section>
     </Layout>
+    </ProtectedRoute>
   );
 }

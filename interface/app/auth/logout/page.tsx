@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { clearUserCache } from '@/lib/auth';
+import { apiGet } from '@/lib/api';
 
 export default function LogoutPage() {
   const router = useRouter();
@@ -9,13 +11,11 @@ export default function LogoutPage() {
   useEffect(() => {
     const logout = async () => {
       try {
-        await fetch('http://localhost:5050/auth/logout', {
-          method: 'GET',
-          credentials: 'include',
-        });
+        await apiGet('/auth/logout');
       } catch (err) {
         console.error('Erro ao fazer logout:', err);
       } finally {
+        clearUserCache();
         router.push('/auth/login');
       }
     };

@@ -3,6 +3,7 @@
 import { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { apiGet } from '@/lib/api';
 
 interface Reservation {
@@ -257,8 +258,10 @@ function InternalDashboardContent() {
 
 export default function InternalDashboardPage() {
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
-      <InternalDashboardContent />
-    </Suspense>
+    <ProtectedRoute allowedRoles={['internal', 'staff', 'admin']}>
+      <Suspense fallback={<div>Carregando...</div>}>
+        <InternalDashboardContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }

@@ -6,7 +6,7 @@ from app.services.auth.decorators import require_role
 
 
 @internal_blueprint.get("/", endpoint="dashboard")
-@require_role("internal", "admin")
+@require_role("internal", "staff", "admin")
 def dashboard():
     cpf = request.args.get("cpf") or ""
     reservas = []

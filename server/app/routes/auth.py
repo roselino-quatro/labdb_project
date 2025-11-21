@@ -198,6 +198,89 @@ def reject_registration():
         return jsonify({"success": False, "message": message}), 400
 
 
+@auth_blueprint.route("/me", methods=["GET"])
+def get_current_user():
+    """Get current user information from session."""
+    # Check for external token authentication
+    if session.get("external_token"):
+        external_user = session.get("external_user", {})
+        return jsonify({
+            "success": True,
+            "user": {
+                "user_id": session.get("invite_id"),  # Use invite_id as identifier
+                "email": external_user.get("email"),
+                "nome": external_user.get("nome"),
+                "roles": {"external": True},
+            }
+        })
+
+    # Check for regular user authentication
+    if not session.get("user_id"):
+        return jsonify({"success": False, "message": "Autenticação necessária"}), 401
+
+    profile_access = session.get("profile_access", {})
+
+    return jsonify({
+        "success": True,
+        "user": {
+            "user_id": session.get("user_id"),
+            "email": session.get("user_email"),
+            "nome": session.get("user_nome"),
+            "roles": profile_access,
+        }
+    })
+
+
+@auth_blueprint.route("/login/external", methods=["POST"])
+def login_external():
+    """Login endpoint for external users using token."""
+    if request.is_json:
+        data = request.json
+        token = data.get("token", "").strip()
+    else:
+        token = request.form.get("token", "").strip()
+
+    if not token:
+        return jsonify({"success": False, "message": "Token é obrigatório"}), 400
+
+    result = sql_queries.fetch_one(
+        "queries/auth/login_external_by_token.sql",
+        {"token": token},
+    )
+
+    if not result or not result.get("result"):
+        return jsonify({"success": False, "message": "Erro ao processar autenticação"}), 500
+
+    auth_data = result["result"]
+
+    if not auth_data.get("success"):
+        return jsonify({"success": False, "message": auth_data.get("message", "Token inválido")}), 401
+
+    # Store external user data in session
+    session["external_token"] = token
+    session["invite_id"] = auth_data["invite_id"]
+    session["invite_status"] = auth_data["invite_status"]
+    session["activity_id"] = auth_data.get("activity_id")
+    session["external_user"] = {
+        "nome": auth_data["invite_data"]["nome_convidado"],
+        "documento": auth_data["invite_data"]["documento_convidado"],
+        "email": auth_data["invite_data"].get("email_convidado"),
+        "telefone": auth_data["invite_data"].get("telefone_convidado"),
+    }
+    session["profile_access"] = {"external": True}
+
+    return jsonify({
+        "success": True,
+        "message": "Login realizado com sucesso",
+        "redirect": "/external/dashboard",
+        "invite": {
+            "invite_id": auth_data["invite_id"],
+            "status": auth_data["invite_status"],
+            "activity_id": auth_data.get("activity_id"),
+        }
+    })
+
+
 @auth_blueprint.route("/logout", methods=["GET"])
 def logout():
     session.clear()
