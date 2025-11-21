@@ -36,16 +36,22 @@ def gerar_atribuicoes_funcionario(dbsession):
     funcionarios_result = dbsession.fetch_all("SELECT CPF_INTERNO FROM FUNCIONARIO ORDER BY CPF_INTERNO")
     cpfs_funcionarios = [row['cpf_interno'] for row in funcionarios_result]
 
-    # Garantir que o usuário de teste receba atribuição de Administrador
-    pessoa_teste_result = dbsession.fetch_one("SELECT CPF FROM PESSOA WHERE EMAIL = 'teste@usp.br'")
-    cpf_teste = pessoa_teste_result['cpf'] if pessoa_teste_result else None
+    # Buscar CPFs dos usuários de teste
+    pessoa_admin_result = dbsession.fetch_one("SELECT CPF FROM PESSOA WHERE EMAIL = 'admin@usp.br'")
+    cpf_admin = pessoa_admin_result['cpf'] if pessoa_admin_result else None
+
+    pessoa_funcionario_result = dbsession.fetch_one("SELECT CPF FROM PESSOA WHERE EMAIL = 'funcionario@usp.br'")
+    cpf_funcionario_teste = pessoa_funcionario_result['cpf'] if pessoa_funcionario_result else None
 
     # Montar os dados para atribuição
     atribuicoes_data = []
     for cpf_funcionario in cpfs_funcionarios:
-        # Se for o usuário de teste, garantir atribuição de Administrador
-        if cpf_teste and cpf_funcionario == cpf_teste:
+        # Se for o admin, garantir atribuição de Administrador
+        if cpf_admin and cpf_funcionario == cpf_admin:
             atribuicao = 'Administrador'
+        # Se for o funcionario de teste, garantir atribuição aleatória (não Administrador)
+        elif cpf_funcionario_teste and cpf_funcionario == cpf_funcionario_teste:
+            atribuicao = gerar_atribuicao()
         else:
             atribuicao = gerar_atribuicao()
         atribuicoes_data.append((cpf_funcionario, atribuicao))

@@ -16,33 +16,38 @@ def gerar_categoria():
 
 # Função para dividir os dados em 90% para internos e 10% para pessoas restantes
 def gerar_interno_usp(dbsession):
+    # Emails fixos para garantir que sejam internos
+    EMAILS_TESTE = ["admin@usp.br", "interno@usp.br", "funcionario@usp.br"]
+
     # Buscar todas as pessoas do banco
     pessoas_result = dbsession.fetch_all("SELECT CPF, EMAIL FROM PESSOA ORDER BY CPF")
     cpfs = [row['cpf'] for row in pessoas_result]
 
-    # Garantir que a pessoa com email fixo seja interna
-    pessoa_teste_result = dbsession.fetch_one("SELECT CPF FROM PESSOA WHERE EMAIL = 'teste@usp.br'")
-    cpf_teste = pessoa_teste_result['cpf'] if pessoa_teste_result else None
-
-    # Remover o CPF de teste da lista para garantir que será incluído
-    if cpf_teste and cpf_teste in cpfs:
-        cpfs.remove(cpf_teste)
+    # Garantir que as pessoas com emails fixos sejam internas
+    cpfs_teste = []
+    for email_teste in EMAILS_TESTE:
+        pessoa_teste_result = dbsession.fetch_one(f"SELECT CPF FROM PESSOA WHERE EMAIL = '{email_teste}'")
+        if pessoa_teste_result:
+            cpf_teste = pessoa_teste_result['cpf']
+            if cpf_teste in cpfs:
+                cpfs.remove(cpf_teste)
+                cpfs_teste.append(cpf_teste)
 
     # Embaralhar os dados para garantir a aleatoriedade
     random.shuffle(cpfs)
 
     # Calcular a quantidade para 90% e 10%
-    total_pessoas = len(cpfs) + (1 if cpf_teste else 0)
+    total_pessoas = len(cpfs) + len(cpfs_teste)
     percentual_90 = int(total_pessoas * 0.9)
 
-    # Ajustar para garantir que o teste seja incluído
-    if cpf_teste:
-        percentual_90 = max(percentual_90, 1)
+    # Ajustar para garantir que os testes sejam incluídos
+    if cpfs_teste:
+        percentual_90 = max(percentual_90, len(cpfs_teste))
 
-    # Separar os dados (garantir que teste está nos internos)
-    cpfs_internos = cpfs[:percentual_90 - (1 if cpf_teste else 0)]
-    if cpf_teste:
-        cpfs_internos.insert(0, cpf_teste)  # Inserir no início para garantir
+    # Separar os dados (garantir que testes estão nos internos)
+    cpfs_internos = cpfs[:percentual_90 - len(cpfs_teste)]
+    # Inserir os CPFs de teste no início para garantir
+    cpfs_internos = cpfs_teste + cpfs_internos
 
     # Preparar dados para inserção no banco
     internos_data = []

@@ -8,7 +8,8 @@ from app.database import DBSession
 
 # Senha padrão para testes (será hasheada pelo PostgreSQL)
 SENHA_PADRAO = "senha123"
-EMAIL_TESTE = "teste@usp.br"
+# Emails fixos para login de testes
+EMAILS_TESTE = ["admin@usp.br", "interno@usp.br", "funcionario@usp.br"]
 
 
 def gerar_usuario_senha(dbsession):
@@ -49,17 +50,19 @@ def gerar_usuario_senha(dbsession):
     internos_result = dbsession.fetch_all("SELECT CPF_PESSOA FROM INTERNO_USP")
     cpfs_internos = [row["cpf_pessoa"] for row in internos_result]
 
-    # Verificar se o usuário de teste tem senha
-    pessoa_teste_result = dbsession.fetch_one(f"""
-        SELECT P.CPF
-        FROM PESSOA P
-        INNER JOIN INTERNO_USP I ON P.CPF = I.CPF_PESSOA
-        WHERE P.EMAIL = '{EMAIL_TESTE}'
-    """)
-
-    if pessoa_teste_result:
-        cpf_teste = pessoa_teste_result["cpf"]
-        print(f"   📧 Usuário de teste encontrado: {EMAIL_TESTE} (CPF: {cpf_teste})")
+    # Verificar se os usuários de teste existem
+    usuarios_teste_encontrados = []
+    for email_teste in EMAILS_TESTE:
+        pessoa_teste_result = dbsession.fetch_one(f"""
+            SELECT P.CPF
+            FROM PESSOA P
+            INNER JOIN INTERNO_USP I ON P.CPF = I.CPF_PESSOA
+            WHERE P.EMAIL = '{email_teste}'
+        """)
+        if pessoa_teste_result:
+            cpf_teste = pessoa_teste_result["cpf"]
+            usuarios_teste_encontrados.append((email_teste, cpf_teste))
+            print(f"   📧 Usuário de teste encontrado: {email_teste} (CPF: {cpf_teste})")
 
     if not cpfs_internos:
         print("⚠️  Nenhum interno USP encontrado. Pulando geração de senhas.")
@@ -177,7 +180,7 @@ def gerar_usuario_senha(dbsession):
 
         print(f"✅ {len(usuarios_data)} usuários com senhas inseridos com sucesso!")
         print(f"   Senha padrão para testes: '{SENHA_PADRAO}'")
-        print(f"   📧 Email para login: '{EMAIL_TESTE}'")
+        print(f"   📧 Emails para login: {', '.join(EMAILS_TESTE)}")
     except Exception as e:
         error_msg = (
             f"❌ Erro ao inserir usuários com senhas: {e}\n"

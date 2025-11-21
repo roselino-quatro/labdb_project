@@ -119,15 +119,6 @@ export default function LoginPage() {
             Acessar como usuário externo →
           </Link>
         </div>
-        <div className="mt-6 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
-          <h2 className="mb-2 font-semibold text-gray-800">Perfis com acesso</h2>
-          <ul className="space-y-1">
-            <li>Administrador: gerenciamento completo do CEFER.</li>
-            <li>Funcionário CEFER: administração de atividades e instalações.</li>
-            <li>Interno USP: reservas, inscrições e convites.</li>
-            <li>Externo USP: acesso mediante convite validado.</li>
-          </ul>
-        </div>
       </div>
     </Layout>
   );

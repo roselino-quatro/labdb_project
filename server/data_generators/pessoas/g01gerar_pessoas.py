@@ -29,8 +29,10 @@ def gerar_cpf():
 # Inicializa Faker
 fake = Faker("pt_BR")
 
-# Email fixo para login de testes
-EMAIL_TESTE = "teste@usp.br"
+# Emails fixos para login de testes
+EMAIL_ADMIN = "admin@usp.br"
+EMAIL_INTERNO = "interno@usp.br"
+EMAIL_FUNCIONARIO = "funcionario@usp.br"
 
 
 def gerar_pessoas(dbsession, quantidade):
@@ -41,32 +43,37 @@ def gerar_pessoas(dbsession, quantidade):
 
     print(f"Gerando {quantidade} pessoas...")
 
-    # Primeira pessoa sempre terá o email fixo para testes
-    primeiro_cpf = gerar_cpf()
-    while primeiro_cpf in cpfs_gerados:
-        primeiro_cpf = gerar_cpf()
-    cpfs_gerados.add(primeiro_cpf)
+    # Criar três usuários de teste no início
+    usuarios_teste = [
+        ("admin@usp.br", "Administrador Teste"),
+        ("interno@usp.br", "Interno Teste"),
+        ("funcionario@usp.br", "Funcionário Teste"),
+    ]
 
-    primeiro_nome = "Usuário Teste"
-    primeiro_celular = (
-        f"(11) 9{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
-    )
-    primeiro_data_nascimento = fake.date_of_birth(minimum_age=18, maximum_age=80)
+    for email_teste, nome_teste in usuarios_teste:
+        cpf_teste = gerar_cpf()
+        while cpf_teste in cpfs_gerados:
+            cpf_teste = gerar_cpf()
+        cpfs_gerados.add(cpf_teste)
 
-    pessoas_data.append(
-        (
-            primeiro_cpf,
-            primeiro_nome,
-            EMAIL_TESTE,
-            primeiro_celular,
-            primeiro_data_nascimento,
+        celular_teste = (
+            f"(11) 9{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
         )
-    )
-    emails_usados.add(EMAIL_TESTE)
+        data_nascimento_teste = fake.date_of_birth(minimum_age=18, maximum_age=80)
 
-    print(f"   📧 Email fixo para login: {EMAIL_TESTE} (CPF: {primeiro_cpf})")
+        pessoas_data.append(
+            (
+                cpf_teste,
+                nome_teste,
+                email_teste,
+                celular_teste,
+                data_nascimento_teste,
+            )
+        )
+        emails_usados.add(email_teste)
+        print(f"   📧 Email fixo para login: {email_teste} (CPF: {cpf_teste})")
 
-    for i in range(1, quantidade):
+    for i in range(len(usuarios_teste), quantidade):
         # Gera CPF único
         cpf = gerar_cpf()
         while cpf in cpfs_gerados:

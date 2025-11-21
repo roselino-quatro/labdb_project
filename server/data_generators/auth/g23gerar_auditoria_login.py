@@ -29,26 +29,26 @@ def gerar_mensagem(status, email):
 
 def gerar_auditoria_login(dbsession):
     """
-    Gera um log de login bem-sucedido para o usuário de teste.
+    Gera um log de login bem-sucedido para o usuário admin de teste.
     """
-    EMAIL_TESTE = "teste@usp.br"
+    EMAIL_ADMIN = "admin@usp.br"
 
-    # Verificar se o usuário de teste existe
-    pessoa_teste_result = dbsession.fetch_one(f"""
+    # Verificar se o usuário admin de teste existe
+    pessoa_admin_result = dbsession.fetch_one(f"""
         SELECT P.EMAIL
         FROM PESSOA P
-        WHERE P.EMAIL = '{EMAIL_TESTE}'
+        WHERE P.EMAIL = '{EMAIL_ADMIN}'
     """)
 
-    if not pessoa_teste_result:
-        print("⚠️  Usuário de teste não encontrado. Pulando geração de auditoria de login.")
+    if not pessoa_admin_result:
+        print("⚠️  Usuário admin de teste não encontrado. Pulando geração de auditoria de login.")
         return
 
-    # Criar apenas um log de login bem-sucedido para o usuário de teste
+    # Criar apenas um log de login bem-sucedido para o usuário admin de teste
     timestamp = datetime.now() - timedelta(hours=1)  # Login há 1 hora
     status = 'SUCCESS'
     ip_origem = gerar_ip_aleatorio()
-    mensagem = gerar_mensagem(status, EMAIL_TESTE)
+    mensagem = gerar_mensagem(status, EMAIL_ADMIN)
 
     # Inserir diretamente no banco
     query = """
@@ -62,9 +62,9 @@ def gerar_auditoria_login(dbsession):
         VALUES (%s, %s, %s, %s, %s)
     """
 
-    auditoria_data = [(timestamp, EMAIL_TESTE, ip_origem, status, mensagem)]
+    auditoria_data = [(timestamp, EMAIL_ADMIN, ip_origem, status, mensagem)]
 
-    print(f"Inserindo 1 log de auditoria de login para {EMAIL_TESTE}...")
+    print(f"Inserindo 1 log de auditoria de login para {EMAIL_ADMIN}...")
     dbsession.executemany(query, auditoria_data)
     print(f"✅ 1 log de auditoria de login inserido com sucesso!")
 
