@@ -125,7 +125,7 @@ DECLARE
     email_matches BOOLEAN;
 BEGIN
     -- Check if person exists
-    SELECT EXISTS(SELECT 1 FROM pessoa WHERE cpf = cpf_pessoa) INTO pessoa_exists;
+    SELECT EXISTS(SELECT 1 FROM pessoa p WHERE p.cpf = request_registration.cpf_pessoa) INTO pessoa_exists;
     IF NOT pessoa_exists THEN
         RETURN json_build_object(
             'success', FALSE,
@@ -134,7 +134,7 @@ BEGIN
     END IF;
 
     -- Check if email matches
-    SELECT EXISTS(SELECT 1 FROM pessoa WHERE cpf = cpf_pessoa AND email = request_registration.email) INTO email_matches;
+    SELECT EXISTS(SELECT 1 FROM pessoa p WHERE p.cpf = request_registration.cpf_pessoa AND p.email = request_registration.email) INTO email_matches;
     IF NOT email_matches THEN
         RETURN json_build_object(
             'success', FALSE,
@@ -143,7 +143,7 @@ BEGIN
     END IF;
 
     -- Check if person is internal USP
-    SELECT EXISTS(SELECT 1 FROM interno_usp WHERE cpf_pessoa = request_registration.cpf_pessoa) INTO interno_exists;
+    SELECT EXISTS(SELECT 1 FROM interno_usp i WHERE i.cpf_pessoa = request_registration.cpf_pessoa) INTO interno_exists;
     IF NOT interno_exists THEN
         RETURN json_build_object(
             'success', FALSE,
@@ -152,7 +152,7 @@ BEGIN
     END IF;
 
     -- Check if NUSP matches
-    SELECT EXISTS(SELECT 1 FROM interno_usp WHERE cpf_pessoa = request_registration.cpf_pessoa AND nusp = request_registration.nusp) INTO nusp_matches;
+    SELECT EXISTS(SELECT 1 FROM interno_usp i WHERE i.cpf_pessoa = request_registration.cpf_pessoa AND i.nusp = request_registration.nusp) INTO nusp_matches;
     IF NOT nusp_matches THEN
         RETURN json_build_object(
             'success', FALSE,
@@ -162,9 +162,9 @@ BEGIN
 
     -- Check if request already exists
     SELECT EXISTS(
-        SELECT 1 FROM solicitacao_cadastro
-        WHERE cpf_pessoa = request_registration.cpf_pessoa
-        AND status = 'PENDENTE'
+        SELECT 1 FROM solicitacao_cadastro sc
+        WHERE sc.cpf_pessoa = request_registration.cpf_pessoa
+        AND sc.status = 'PENDENTE'
     ) INTO request_exists;
     IF request_exists THEN
         RETURN json_build_object(
@@ -174,7 +174,7 @@ BEGIN
     END IF;
 
     -- Check if user already has account
-    IF EXISTS(SELECT 1 FROM usuario_senha WHERE cpf_pessoa = request_registration.cpf_pessoa) THEN
+    IF EXISTS(SELECT 1 FROM usuario_senha us WHERE us.cpf_pessoa = request_registration.cpf_pessoa) THEN
         RETURN json_build_object(
             'success', FALSE,
             'message', 'User already has an account'
@@ -183,7 +183,7 @@ BEGIN
 
     -- Create registration request (store plain password temporarily, will be hashed on approval)
     INSERT INTO solicitacao_cadastro (cpf_pessoa, nusp, status, observacoes)
-    VALUES (cpf_pessoa, nusp, 'PENDENTE', 'Password: ' || plain_password);
+    VALUES (request_registration.cpf_pessoa, request_registration.nusp, 'PENDENTE', 'Password: ' || request_registration.plain_password);
 
     RETURN json_build_object(
         'success', TRUE,
