@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Layout from '@/components/Layout';
-import { apiGet, apiPost } from '@/lib/api';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Layout from "@/components/Layout";
+import { apiGet, apiPost } from "@/lib/api";
 
 interface Registration {
   id_solicitacao: number;
@@ -16,10 +15,12 @@ interface Registration {
 }
 
 export default function PendingRegistrationsPage() {
-  const router = useRouter();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<{ category: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    category: "success" | "error";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     loadRegistrations();
@@ -30,7 +31,7 @@ export default function PendingRegistrationsPage() {
       const data = await apiGet<{
         success: boolean;
         registrations: Registration[];
-      }>('/auth/pending-registrations');
+      }>("/auth/pending-registrations");
 
       if (data.success && Array.isArray(data.registrations)) {
         setRegistrations(data.registrations);
@@ -38,7 +39,7 @@ export default function PendingRegistrationsPage() {
         setRegistrations([]);
       }
     } catch (err) {
-      console.error('Erro ao carregar registrations:', err);
+      console.error("Erro ao carregar registrations:", err);
       setRegistrations([]);
     } finally {
       setLoading(false);
@@ -50,29 +51,39 @@ export default function PendingRegistrationsPage() {
       const data = await apiPost<{
         success: boolean;
         message?: string;
-      }>('/auth/approve-registration', {
+      }>("/auth/approve-registration", {
         id_solicitacao: id,
       });
 
       if (data.success) {
-        setMessage({ category: 'success', text: data.message || 'Cadastro aprovado com sucesso' });
+        setMessage({
+          category: "success",
+          text: data.message || "Cadastro aprovado com sucesso",
+        });
         loadRegistrations();
       } else {
-        setMessage({ category: 'error', text: data.message || 'Erro ao aprovar cadastro' });
+        setMessage({
+          category: "error",
+          text: data.message || "Erro ao aprovar cadastro",
+        });
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao processar solicitação';
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro ao processar solicitação";
       try {
         const errorData = JSON.parse(errorMessage);
-        setMessage({ category: 'error', text: errorData.message || 'Erro ao aprovar cadastro' });
+        setMessage({
+          category: "error",
+          text: errorData.message || "Erro ao aprovar cadastro",
+        });
       } catch {
-        setMessage({ category: 'error', text: errorMessage });
+        setMessage({ category: "error", text: errorMessage });
       }
     }
   };
 
   const handleReject = async (id: number) => {
-    if (!confirm('Tem certeza que deseja rejeitar esta solicitação?')) {
+    if (!confirm("Tem certeza que deseja rejeitar esta solicitação?")) {
       return;
     }
 
@@ -80,39 +91,51 @@ export default function PendingRegistrationsPage() {
       const data = await apiPost<{
         success: boolean;
         message?: string;
-      }>('/auth/reject-registration', {
+      }>("/auth/reject-registration", {
         id_solicitacao: id,
-        observacoes: '',
+        observacoes: "",
       });
 
       if (data.success) {
-        setMessage({ category: 'success', text: data.message || 'Cadastro rejeitado' });
+        setMessage({
+          category: "success",
+          text: data.message || "Cadastro rejeitado",
+        });
         loadRegistrations();
       } else {
-        setMessage({ category: 'error', text: data.message || 'Erro ao rejeitar cadastro' });
+        setMessage({
+          category: "error",
+          text: data.message || "Erro ao rejeitar cadastro",
+        });
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao processar solicitação';
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro ao processar solicitação";
       try {
         const errorData = JSON.parse(errorMessage);
-        setMessage({ category: 'error', text: errorData.message || 'Erro ao rejeitar cadastro' });
+        setMessage({
+          category: "error",
+          text: errorData.message || "Erro ao rejeitar cadastro",
+        });
       } catch {
-        setMessage({ category: 'error', text: errorMessage });
+        setMessage({ category: "error", text: errorMessage });
       }
     }
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return '-';
+    if (!dateString) return "-";
     const date = new Date(dateString);
-    return date.toLocaleString('pt-BR');
+    return date.toLocaleString("pt-BR");
   };
 
   return (
     <Layout messages={message ? [message] : undefined}>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Solicitações de Cadastro Pendentes</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Solicitações de Cadastro Pendentes
+          </h1>
           <Link
             href="/admin/dashboard"
             className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
@@ -151,10 +174,18 @@ export default function PendingRegistrationsPage() {
               <tbody className="divide-y divide-gray-200 bg-white">
                 {registrations.map((reg) => (
                   <tr key={reg.id_solicitacao}>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{reg.cpf_pessoa}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{reg.nome}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{reg.email}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{reg.nusp}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                      {reg.cpf_pessoa}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                      {reg.nome}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                      {reg.email}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                      {reg.nusp}
+                    </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                       {formatDate(reg.data_solicitacao)}
                     </td>
@@ -179,7 +210,9 @@ export default function PendingRegistrationsPage() {
           </div>
         ) : (
           <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow">
-            <p className="text-gray-500">Nenhuma solicitação de cadastro pendente.</p>
+            <p className="text-gray-500">
+              Nenhuma solicitação de cadastro pendente.
+            </p>
           </div>
         )}
       </div>
