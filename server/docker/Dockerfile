@@ -10,11 +10,10 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends python3-tk \
     && rm -rf /var/lib/apt/lists/*
 
-COPY server/requirements.txt /app/requirements.txt
+COPY requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-COPY server/ /app/
-COPY server/docker/entrypoint.py /app/docker/entrypoint.py
+COPY . /app/
 
 ENV FLASK_APP=wsgi.py \
     FLASK_ENV=development \
