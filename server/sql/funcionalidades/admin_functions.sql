@@ -28,12 +28,26 @@ CREATE OR REPLACE PROCEDURE atualizar_pessoa(
     p_email_novo VARCHAR,
     p_celular_novo VARCHAR
 ) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cmd TEXT;
 BEGIN
-    UPDATE PESSOA
-    SET NOME = p_novo_nome,
-        EMAIL = p_novo_email,
-        CELULAR = p_novo_celular
-    WHERE CPF = p_cpf;
+    v_cmd := 'UPDATE pessoa SET ';
+    -- Lógica para adicionar os updates baseado se um valor NULL foi passado
+    IF p_nome_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' nome = ''' || p_nome_novo || ''',';
+    END IF;
+    IF p_email_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' email = ''' || p_email_novo || ''',';
+    END IF;
+    IF p_celular_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' celular = ''' || p_celular_novo || ''',';
+    END IF;
+
+    -- Corta o ultimo caracter, que seria uma virgula de um dos SETs
+    v_cmd := left(v_cmd, -1);
+    v_cmd := v_cmd || ' WHERE cpf = ''' || p_cpf || '''';
+
+    EXECUTE v_cmd;
     
     IF NOT FOUND THEN RAISE EXCEPTION 'Pessoa com CPF % não encontrada.', p_cpf; END IF;
 END;
@@ -83,12 +97,22 @@ $$ LANGUAGE plpgsql;
 -- UPDATE
 CREATE OR REPLACE PROCEDURE atualizar_interno(
     p_cpf VARCHAR,
-    p_nova_categoria VARCHAR
+    p_categoria_nova VARCHAR
 ) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cmd TEXT;
 BEGIN
-    UPDATE INTERNO_USP
-    SET CATEGORIA = p_nova_categoria
-    WHERE CPF_PESSOA = p_cpf;
+    v_cmd := 'UPDATE interno_usp SET ';
+    -- Lógica para adicionar os updates baseado se um valor NULL foi passado
+    IF p_categoria_nova IS NOT NULL THEN
+      v_cmd := v_cmd || ' categoria = ''' || p_categoria_nova || ''',';
+    END IF;
+
+    -- Corta o ultimo caracter, que seria uma virgula de um dos SETs
+    v_cmd := left(v_cmd, -1);
+    v_cmd := v_cmd || ' WHERE cpf = ''' || p_cpf || '''';
+
+    EXECUTE v_cmd;
     
     IF NOT FOUND THEN RAISE EXCEPTION 'Interno não encontrado.'; END IF;
 END;
@@ -134,10 +158,20 @@ CREATE OR REPLACE PROCEDURE atualizar_funcionario(
     p_cpf VARCHAR,
     p_formacao_nova VARCHAR
 ) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cmd TEXT;
 BEGIN
-    UPDATE FUNCIONARIO
-    SET FORMACAO = p_nova_formacao
-    WHERE CPF_INTERNO = p_cpf;
+    v_cmd := 'UPDATE funcionario SET ';
+    -- Lógica para adicionar os updates baseado se um valor NULL foi passado
+    IF p_formacao_nova IS NOT NULL THEN
+      v_cmd := v_cmd || ' formacao = ''' || p_formacao_nova || ''',';
+    END IF;
+
+    -- Corta o ultimo caracter, que seria uma virgula de um dos SETs
+    v_cmd := left(v_cmd, -1);
+    v_cmd := v_cmd || ' WHERE cpf = ''' || p_cpf || '''';
+
+    EXECUTE v_cmd;
     
     IF NOT FOUND THEN RAISE EXCEPTION 'Funcionário não encontrado.'; END IF;
 END;
@@ -185,10 +219,20 @@ CREATE OR REPLACE PROCEDURE atualizar_educador(
     p_cpf VARCHAR,
     p_conselho_novo VARCHAR
 ) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cmd TEXT;
 BEGIN
-    UPDATE EDUCADOR_FISICO
-    SET NUMERO_CONSELHO = p_novo_conselho
-    WHERE CPF_FUNCIONARIO = p_cpf;
+    v_cmd := 'UPDATE educador_fisico SET ';
+    -- Lógica para adicionar os updates baseado se um valor NULL foi passado
+    IF p_conselho_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' numero_conselho = ''' || p_conselho_novo || ''',';
+    END IF;
+
+    -- Corta o ultimo caracter, que seria uma virgula de um dos SETs
+    v_cmd := left(v_cmd, -1);
+    v_cmd := v_cmd || ' WHERE cpf = ''' || p_cpf || '''';
+
+    EXECUTE v_cmd;
 
     IF NOT FOUND THEN RAISE EXCEPTION 'Educador físico não encontrado.'; END IF;
 END;
@@ -268,12 +312,26 @@ CREATE OR REPLACE PROCEDURE atualizar_equipamento(
     p_id_instalacao_novo INT,
     p_eh_reservavel_novo CHAR
 ) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cmd TEXT;
 BEGIN
-    UPDATE EQUIPAMENTO
-    SET NOME = p_nome,
-        ID_INSTALACAO_LOCAL = p_id_instalacao,
-        EH_RESERVAVEL = p_eh_reservavel
-    WHERE ID_PATRIMONIO = p_id_patrimonio;
+    v_cmd := 'UPDATE equipamento SET ';
+    -- Lógica para adicionar os updates baseado se um valor NULL foi passado
+    IF p_nome IS NOT NULL THEN
+      v_cmd := v_cmd || ' nome = ''' || p_nome_novo || ''',';
+    END IF;
+    IF p_id_instalacao IS NOT NULL THEN
+      v_cmd := v_cmd || ' id_instalacao_local = ''' || p_id_instalacao_novo || ''',';
+    END IF;
+    IF p_cpf_responsavel_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' eh_reservavel = ''' || p_eh_reservavel_novo || ''',';
+    END IF;
+
+    -- Corta o ultimo caracter, que seria uma virgula de um dos SETs
+    v_cmd := left(v_cmd, -1);
+    v_cmd := v_cmd || ' WHERE id_patrimonio = ''' || p_id_patrimonio || '''';
+
+    EXECUTE v_cmd;
     
     IF NOT FOUND THEN RAISE EXCEPTION 'Equipamento não encontrado.'; END IF;
 END;
@@ -317,10 +375,26 @@ CREATE OR REPLACE PROCEDURE atualizar_instalacao(
     p_capacidade_novo INT,
     p_eh_reservavel_novo CHAR
 ) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cmd TEXT;
 BEGIN
-    UPDATE INSTALACAO
-    SET NOME = p_nome, CAPACIDADE = p_capacidade, EH_RESERVAVEL = p_eh_reservavel
-    WHERE ID_INSTALACAO = p_id;
+    v_cmd := 'UPDATE instalacao SET ';
+    -- Lógica para adicionar os updates baseado se um valor NULL foi passado
+    IF p_nome IS NOT NULL THEN
+      v_cmd := v_cmd || ' nome = ''' || p_nome_novo || ''',';
+    END IF;
+    IF p_capacidade IS NOT NULL THEN
+      v_cmd := v_cmd || ' capacidade = ''' || p_capacidade_novo || ''',';
+    END IF;
+    IF p_eh_reservavel IS NOT NULL THEN
+      v_cmd := v_cmd || ' eh_reservavel = ''' || p_eh_reservavel_novo || ''',';
+    END IF;
+
+    -- Corta o ultimo caracter, que seria uma virgula de um dos SETs
+    v_cmd := left(v_cmd, -1);
+    v_cmd := v_cmd || ' WHERE id_instalacao = ''' || p_id || '''';
+
+    EXECUTE v_cmd;
     
     IF NOT FOUND THEN RAISE EXCEPTION 'Instalação não encontrada.'; END IF;
 END;
@@ -359,11 +433,23 @@ CREATE OR REPLACE PROCEDURE atualizar_evento(
     p_nome_novo VARCHAR,
     p_descricao_nova TEXT
 ) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cmd TEXT;
 BEGIN
-    UPDATE EVENTO
-    SET NOME = p_nome_novo,
-        DESCRICAO = p_descricao_nova
-    WHERE ID_EVENTO = p_id_evento;
+    v_cmd := 'UPDATE evento SET ';
+    -- Lógica para adicionar os updates baseado se um valor NULL foi passado
+    IF p_nome_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' nome = ''' || p_nome_novo || ''',';
+    END IF;
+    IF p_descricao_nova IS NOT NULL THEN
+      v_cmd := v_cmd || ' descricao = ''' || p_descricao_nova || ''',';
+    END IF;
+
+    -- Corta o ultimo caracter, que seria uma virgula de um dos SETs
+    v_cmd := left(v_cmd, -1);
+    v_cmd := v_cmd || ' WHERE id_evento = ''' || p_id_evento || '''';
+
+    EXECUTE v_cmd;
 
     IF NOT FOUND THEN RAISE EXCEPTION 'Evento não encontrado.'; END IF;
 END;
