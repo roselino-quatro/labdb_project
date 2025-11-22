@@ -1,4 +1,4 @@
-from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import jsonify, request
 
 from app.routes.extension_group import extension_group_blueprint
 from app.services.auth.decorators import require_role
