@@ -1,14 +1,31 @@
-\section{Arquiteura Desenvolvida}
-\subsection{Docker e Docker Compose}
+\section{Arquitetura Desenvolvida}
+\subsection{Tecnologias Utilizadas}
+\subsubsection{Docker e Docker Compose}
 Para desenvolvimento e transportabilidade da plataforma utilizamos containerização e orquestração utilizando Docker e Docker Compose,
 essas ferramentas nos permitem manter um sistema uniformizado e realizar pipelines de deploy e teste de forma eficiente.
 
 Os detalhes dos serviços criados e configurações escolhidas podem ser encontrados no arquivo "docker-compose.yml"
 
-\subsection{PostgreSQL}
+\subsubsection{PostgreSQL}
 O Sistema Gerenciador de Banco de Dados escolhido foi o PostgreSQL, tanto pela sua simplicidade de uso, custo de processamento leve e conhecimento prévio do grupo. 
 
-\subsection{Flask}
-Lorem Ipsum
+\subsubsection{Flask}
+Para o desenvolvimento do backend utilizamos a biblioteca Flask do Python, apesar de possuir limitações comparadas a outras opções ela é leve
+e permitiu um desenvolvimento rápido e efetivo até entre os membros do gruopo sem experiência nela.
 
+\subsubsection{NextJs}
+O Frontend da plataforma foi desenvolvido utilizando o framework NextJs, mesmo o foco do projeto não sendo a interface de usuário temos interesse em
+manter um frontend legivel e bonito mantendo um desenvolvimento rápido e integração com o backend, facilmente provida pelo uso de componentes React
+
+\subsection{Lógica Interna}
+Realizamos a escolha de, sempre que possível, separar o código SQL do código de outras linguagens, tanto por uma questão de modularização
+e organização quanto para evidenciar como os conceitos da disciplina foram aplicados no desenvolvimento.
+
+Dentro do diretório "sql" criamos um script para gerar o schema completo da base, o código de inicialização em python verifica a existência da
+base de dados e automaticamente executa esse script, depois ele também verifica se a base já está populada, se não ele executa ordenamente
+a geração de dados sintéticos para o uso da base.
+
+Dentro deste também temos o subdiretório "funcionalidades", com scripts separados por entidade relacionada que criam as funções, procedures
+e triggers que vão ser utilizados no código. O subdiretório "queries" contem as chamadas de queries que são puxadas pelo backend e acionadas 
+utilizando a passagem de paramêtros, dessa forma conseguimos isolar as diferentes lógicas do código entre backend e banco.
 
