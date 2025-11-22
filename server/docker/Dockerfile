@@ -14,7 +14,7 @@ COPY server/requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY server/ /app/
-COPY docker/entrypoint.py /app/docker/entrypoint.py
+COPY server/docker/entrypoint.py /app/docker/entrypoint.py
 
 ENV FLASK_APP=wsgi.py \
     FLASK_ENV=development \
