@@ -18,7 +18,7 @@ services:
 
   flask_app:
     build:
-      context: .
+      context: ./server
       dockerfile: docker/Dockerfile
     container_name: flask_app
     environment:
