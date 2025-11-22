@@ -24,9 +24,9 @@ $$ LANGUAGE plpgsql;
 -- UPDATE
 CREATE OR REPLACE PROCEDURE atualizar_pessoa(
     p_cpf VARCHAR,
-    p_novo_nome VARCHAR,
-    p_novo_email VARCHAR,
-    p_novo_celular VARCHAR
+    p_nome_novo VARCHAR,
+    p_email_novo VARCHAR,
+    p_celular_novo VARCHAR
 ) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE PESSOA
@@ -132,7 +132,7 @@ $$ LANGUAGE plpgsql;
 -- UPDATE
 CREATE OR REPLACE PROCEDURE atualizar_funcionario(
     p_cpf VARCHAR,
-    p_nova_formacao VARCHAR
+    p_formacao_nova VARCHAR
 ) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE FUNCIONARIO
@@ -183,7 +183,7 @@ $$ LANGUAGE plpgsql;
 -- UPDATE
 CREATE OR REPLACE PROCEDURE atualizar_educador(
     p_cpf VARCHAR,
-    p_novo_conselho VARCHAR
+    p_conselho_novo VARCHAR
 ) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE EDUCADOR_FISICO
@@ -264,9 +264,9 @@ $$;
 -- UPDATE
 CREATE OR REPLACE PROCEDURE atualizar_equipamento(
     p_id_patrimonio VARCHAR,
-    p_nome VARCHAR,
-    p_id_instalacao INT,
-    p_eh_reservavel CHAR
+    p_nome_novo VARCHAR,
+    p_id_instalacao_novo INT,
+    p_eh_reservavel_novo CHAR
 ) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE EQUIPAMENTO
@@ -313,9 +313,9 @@ $$ LANGUAGE plpgsql;
 -- UPDATE
 CREATE OR REPLACE PROCEDURE atualizar_instalacao(
     p_id INT,
-    p_nome VARCHAR,
-    p_capacidade INT,
-    p_eh_reservavel CHAR
+    p_nome_novo VARCHAR,
+    p_capacidade_novo INT,
+    p_eh_reservavel_novo CHAR
 ) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE INSTALACAO
