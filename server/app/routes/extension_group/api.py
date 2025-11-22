@@ -42,23 +42,9 @@ def create_extension_group():
 def update_extension_group():
     old_name = request.form.get("old_group_name", "").strip()
 
-    group = sql_queries.fetch_one(
-        "queries/extension_group/buscar_grupo.sql", {"nome_grupo": old_name}
-    )
-
-    if not group:
-        return jsonify(
-            {
-                "success": False,
-                "message": "Grupo não encontrado.",
-            }
-        ), 400
-
-    new_name = request.form.get("new_group_name", group["nome_grupo"]).strip()
-    description = request.form.get("description", group["descricao"]).strip()
-    cpf_responsible = request.form.get(
-        "cpf_responsible", group["cpf_responsavel_interno"]
-    ).strip()
+    new_name = request.form.get("new_group_name", None)
+    description = request.form.get("description", None)
+    cpf_responsible = request.form.get("cpf_responsible", None)
 
     sql_queries.execute_statement(
         "queries/extension_group/atualizar_grupo_extensao.sql",

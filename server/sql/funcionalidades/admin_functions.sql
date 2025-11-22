@@ -214,12 +214,26 @@ CREATE OR REPLACE PROCEDURE atualizar_grupo_extensao(
     p_descricao_nova TEXT,
     p_cpf_responsavel_novo VARCHAR 
 ) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cmd TEXT;
 BEGIN
-    UPDATE GRUPO_EXTENSAO
-    SET NOME_GRUPO = p_nome_novo,
-        DESCRICAO = p_descricao_nova,
-        CPF_RESPONSAVEL_INTERNO = p_cpf_responsavel_novo 
-    WHERE NOME_GRUPO = p_nome_antigo;
+    v_cmd := 'UPDATE grupo_extensao SET ';
+    -- Lógica para adicionar os updates baseado se um valor NULL foi passado
+    IF p_nome_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' nome_grupo = ''' || p_nome_novo || ''',';
+    END IF;
+    IF p_descricao_nova IS NOT NULL THEN
+      v_cmd := v_cmd || ' descricao = ''' || p_descricao_nova || ''',';
+    END IF;
+    IF p_cpf_responsavel_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' cpf_responsavel_interno = ''' || p_cpf_responsavel_novo || ''',';
+    END IF;
+
+    -- Corta o ultimo caracter, que seria uma virgula de um dos SETs
+    v_cmd := left(v_cmd, -1);
+    v_cmd := v_cmd || ' WHERE nome_grupo = ''' || p_nome_antigo || '''';
+
+    EXECUTE v_cmd;
 END;
 $$;
 
