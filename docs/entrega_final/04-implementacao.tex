@@ -36,7 +36,6 @@ SQL Dinâmico foi utilizado em múltiplos métodos no sistema para modificar as 
 como criamos as queries de Update sem substituição completa, isto é, permitimos substituir apenas um atributo e
 manter os outros sem modificação. Para reutilizar o mesmo método para cada atributo escolhemos utilizar o SQL Dinâmico
 
-Descrição de tudo que foi implementado em SQL abraço
 
 \begin{lstlisting}[ language=SQL,
                     morekeywords={clustered},
@@ -95,3 +94,11 @@ para serem convocados para o backend com passagem de paramêtros
 CALL atualizar_grupo_extensao(%(nome_grupo_antigo)s, %(nome_grupo_novo)s,  %(descricao)s, %(cpf_responsavel)s);
 
 \end{lstlisting}
+
+
+\subsection{Triggers}
+
+\subsection{Indices}
+\subsection{Views}
+\subsection{Consultas analíticas}
+
