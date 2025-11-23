@@ -26,7 +26,15 @@
     \ifnum#1<10 0\fi#1 |%
 }
 
-\section{Sistema Proposto}
+\section{Implementação do sistema}
+
+Realizamos a implementação do sistema priorizando implementar a lógica do sistema aproveitando os recursos do banco de dados, nesta seção
+vamos destacar as implementações de maior complexidade e os pontos que foram utilizados conhecimentos passados na disciplina
+
+\subsection{SQL Dinâmico}
+SQL Dinâmico foi utilizado em múltiplos métodos no sistema para modificar as queries executadas,
+como criamos as queries de Update sem substituição completa, isto é, permitimos substituir apenas um atributo e
+manter os outros sem modificação. Para reutilizar o mesmo método para cada atributo escolhemos utilizar o SQL Dinâmico
 
 Descrição de tudo que foi implementado em SQL abraço
 
@@ -37,13 +45,53 @@ Descrição de tudo que foi implementado em SQL abraço
                     framexleftmargin=40pt,
                     frame=tb,
                     framerule=0pt ]
-CREATE OR REPLACE FUNCTION hash_password(plain_password TEXT)
-RETURNS TEXT
-AS $$
+CREATE OR REPLACE PROCEDURE atualizar_grupo_extensao(
+    p_nome_antigo VARCHAR,
+    p_nome_novo VARCHAR,
+    p_descricao_nova TEXT,
+    p_cpf_responsavel_novo VARCHAR 
+) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cmd TEXT;
 BEGIN
-    RETURN crypt(plain_password, gen_salt('bf', 10));
+    v_cmd := 'UPDATE grupo_extensao SET ';
+    -- Logica para adicionar os updates baseado se um valor NULL foi passado
+    IF p_nome_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' nome_grupo = ''' || p_nome_novo || ''',';
+    END IF;
+    IF p_descricao_nova IS NOT NULL THEN
+      v_cmd := v_cmd || ' descricao = ''' || p_descricao_nova || ''',';
+    END IF;
+    IF p_cpf_responsavel_novo IS NOT NULL THEN
+      v_cmd := v_cmd || ' cpf_responsavel_interno = ''' || p_cpf_responsavel_novo || ''',';
+    END IF;
+
+    -- Corta o ultimo caracter, que seria uma virgula de um dos SETs
+    v_cmd := left(v_cmd, -1);
+    v_cmd := v_cmd || ' WHERE nome_grupo = ''' || p_nome_antigo || '''';
+
+    EXECUTE v_cmd;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 \end{lstlisting}
 
 
+Depois separamos as as chamadas das subqueries armazenadas em arquivos individuais 
+para serem convocados para o backend com passagem de paramêtros
+\begin{lstlisting}[ language=SQL,
+                    morekeywords={clustered},
+                    framesep=8pt,
+                    xleftmargin=40pt,
+                    framexleftmargin=40pt,
+                    frame=tb,
+                    framerule=0pt ]
+
+-- Query to update a extension group
+-- Parameters:
+--   %(nome_grupo_antigo)s - old name of the extension group
+--   %(nome_grupo_novo)s - new name of the extension group
+--   %(descricao)s  -  new description of the group
+--   %(cpf_responsavel)s  - cpf of the new responsible, must be a internal
+CALL atualizar_grupo_extensao(%(nome_grupo_antigo)s, %(nome_grupo_novo)s,  %(descricao)s, %(cpf_responsavel)s);
+
+\end{lstlisting}
